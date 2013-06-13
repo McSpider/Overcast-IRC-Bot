@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 class function_template(object):
     def __init__(self):
-        # Function name, only required for natural and status functions.
+        # Required value.
         self.name = None
 
         # Register the funtion types, COMMAND, NATURAL and STATUS
