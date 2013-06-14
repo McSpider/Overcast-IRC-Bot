@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 
 class function_template(object):
     def __init__(self):
-        # Required value.
         self.name = None
 
         # Register the funtion types, COMMAND, NATURAL and STATUS
@@ -28,6 +27,8 @@ class function_template(object):
 
         # Specify the functions function.
         self.functionString = "Function template."
+        self.helpString = None
+
 
         # Specify a help string read by the help function.
         self.helpString = ""

@@ -5,33 +5,43 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.name = "help"
         self.command = "help"
         self.functionString = "Overcast bot help."
         self.blocking = True
         self.priority = 2
 
-    def main(self, irc, msgData, funcType):
+    def main(self, bot, msgData, funcType):
         if len(msgData["message"]) > 2:
             subcommand = msgData["message"][2]
-            for func in irc._functions.functionsList:
+            for func in bot._functions.functionsList:
                 if func.name == subcommand:
-                    irc.sendMSG("Info for function: %s" % (subcommand), msgData["recipient"])
-                    irc.sendMSG("%s(%s) - \"%s\"  " % (func.name, int(func.restricted), func.functionString), msgData["recipient"])
+                    bot._irc.sendMSG("Info for function: %s" % (func.name), msgData["target"])
+                    bot._irc.sendMSG("%s" % func.functionString, msgData["target"])
+                    bot._irc.sendMSG("Restricted:%s Type:%s" % (bool(func.restricted), str(func.type)), msgData["target"])
+                    if (func.helpString != None):
+                        bot._irc.sendMSG(func.helpString, msgData["target"])
                     return True
         else:
-            irc.sendMSG("Trigger the bot with: \"%s\"" % ", ".join(config.triggers), msgData["recipient"])
+            bot._irc.sendMSG("Trigger the bot with: \"%s\"" % ", ".join(config.triggers), msgData["target"])
             
             # List all the unrestricted functions
             functionMsg = []
-            for func in irc._functions.functionsList:
-                if func.restricted == True and irc.isUserAuthed(msgData["sender"],msgData["senderHostmask"]):
+            for func in bot._functions.functionsList:
+                funcType = ""
+                for fType in func.type:
+                    if fType == "command":
+                        funcType = "C" + funcType
+                    if fType == "natural":
+                        funcType = "N" + funcType
+                    if fType == "status":
+                        funcType = "S" + funcType
+                funcType = funcType + "."
+                if func.restricted == True and bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"]):
                     continue
-                functionMsg.append(func.name)
-            print functionMsg
+                functionMsg.append(funcType + func.name)
             if len(functionMsg) > 0:
-                irc.sendMSG("Functions you can trigger:", msgData["recipient"])
-                irc.sendMSG(", ".join(functionMsg), msgData["recipient"])
-                irc.sendMSG("For more info about a specific function use: help {function name}", msgData["recipient"])
+                bot._irc.sendMSG("Functions you can trigger:", msgData["target"])
+                bot._irc.sendMSG(", ".join(functionMsg), msgData["target"])
+                bot._irc.sendMSG("For more info about a specific function use: help {function name}", msgData["target"])
 
         return True

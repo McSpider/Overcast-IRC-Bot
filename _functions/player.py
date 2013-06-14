@@ -5,17 +5,16 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.name = "player"
         self.command = "player"
         self.functionString = "Show the stats for a player."
 
-    def main(self, irc, msgData, funcType):
+    def main(self, bot, msgData, funcType):
         message = msgData["message"]
         player = "";
         if len(message) >= 3:
             player = message[2]
         else:
-            irc.sendMSG("No player specified", msgData["recipient"])
+            bot._irc.sendMSG("No player specified", msgData["target"])
             return False
 
         error = ''
@@ -41,9 +40,9 @@ class function(function_template):
                 kk_ratio = soup.find("small", text=["kk ratio"]).findParent('h2').contents[0].strip('\n')
                 joins = soup.find("small", text=["server joins"]).findParent('h2').contents[0].strip('\n')
                 
-                irc.sendMSG("%s - %s" % (str(player), last_seen), msgData["sender"])
-                irc.sendMSG("Kills:%s, Deaths:%s, KD Ratio:%s, KK Ratio:%s" % (kills, deaths, kd_ratio, kk_ratio), msgData["sender"])
-                irc.sendMSG("Friends:%s, Joins:%s" % (friends, joins), msgData["sender"])
+                bot._irc.sendMSG("%s - %s" % (str(player), last_seen), msgData["target"])
+                bot._irc.sendMSG("Kills:%s, Deaths:%s, KD Ratio:%s, KK Ratio:%s" % (kills, deaths, kd_ratio, kk_ratio), msgData["target"])
+                bot._irc.sendMSG("Friends:%s, Joins:%s" % (friends, joins), msgData["target"])
 
-        if error: irc.sendMSG(error, msgData["recipient"])
+        if error: bot._irc.sendMSG(error, msgData["target"])
         return True

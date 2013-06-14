@@ -5,11 +5,10 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.name = "status"
         self.command = "status"
         self.functionString = "Get the Overcast server status."
     
-    def main(self, irc, msgData, funcType):
+    def main(self, bot, msgData, funcType):
         error = ''
         try: data = urllib.urlopen('http://oc.tc/play')
         except urllib2.HTTPError, e:
@@ -25,11 +24,10 @@ class function(function_template):
                 soup = BeautifulSoup(data)
                 
                 status = soup.find("h3", text=re.compile(".*Players Online.*"))#.contents#[1].strip('\n')
-                print status
 
                 status = soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
-                irc.sendMSG("%s" % (status), msgData["recipient"])
+                bot._irc.sendMSG("%s" % (status), msgData["target"])
 
-        if error: irc.sendMSG(error, msgData["recipient"])
+        if error: bot._irc.sendMSG(error, msgData["target"])
         return True
 

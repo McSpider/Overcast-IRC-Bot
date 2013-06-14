@@ -1,1 +1,4 @@
 *.pyc
+
+*/xcuserdata/*.xcuserdatad
+*/project.xcworkspace/xcuserdata/*.xcuserdatad

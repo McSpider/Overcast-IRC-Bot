@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "container:bot.py">
+   </FileRef>
+   <FileRef
+      location = "container:channels.py">
+   </FileRef>
+   <FileRef
+      location = "container:color.py">
+   </FileRef>
+   <FileRef
+      location = "container:config.py">
+   </FileRef>
+   <FileRef
+      location = "container:function_template.py">
+   </FileRef>
+   <FileRef
+      location = "container:functions.py">
+   </FileRef>
+   <FileRef
+      location = "container:irc.py">
+   </FileRef>
+   <FileRef
+      location = "container:utils.py">
+   </FileRef>
+   <Group
+      location = "group:../../Developer/Python/Overcast IRC Bot/_data"
+      name = "_data">
+   </Group>
+   <Group
+      location = "group:_functions"
+      name = "_functions">
+      <FileRef
+         location = "group:afk_nick.py">
+      </FileRef>
+      <FileRef
+         location = "group:channel.py">
+      </FileRef>
+      <FileRef
+         location = "group:face.py">
+      </FileRef>
+      <FileRef
+         location = "group:func.py">
+      </FileRef>
+      <FileRef
+         location = "group:help.py">
+      </FileRef>
+      <FileRef
+         location = "group:ping.py">
+      </FileRef>
+      <FileRef
+         location = "group:player.py">
+      </FileRef>
+      <FileRef
+         location = "group:quit.py">
+      </FileRef>
+      <FileRef
+         location = "group:respond.py">
+      </FileRef>
+      <FileRef
+         location = "group:status.py">
+      </FileRef>
+   </Group>
+   <Group
+      location = "group:../../Developer/Python/Overcast IRC Bot/bs4"
+      name = "bs4">
+      <FileRef
+         location = "group:__init__.py">
+      </FileRef>
+      <Group
+         location = "group:builder"
+         name = "builder">
+         <FileRef
+            location = "group:__init__.py">
+         </FileRef>
+         <FileRef
+            location = "group:_html5lib.py">
+         </FileRef>
+         <FileRef
+            location = "group:_htmlparser.py">
+         </FileRef>
+         <FileRef
+            location = "group:_lxml.py">
+         </FileRef>
+         <FileRef
+            location = "group:_lxml.pyc">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:dammit.py">
+      </FileRef>
+      <FileRef
+         location = "group:element.py">
+      </FileRef>
+      <FileRef
+         location = "group:testing.py">
+      </FileRef>
+      <Group
+         location = "group:tests"
+         name = "tests">
+         <FileRef
+            location = "group:__init__.py">
+         </FileRef>
+         <FileRef
+            location = "group:test_builder_registry.py">
+         </FileRef>
+         <FileRef
+            location = "group:test_docs.py">
+         </FileRef>
+         <FileRef
+            location = "group:test_html5lib.py">
+         </FileRef>
+         <FileRef
+            location = "group:test_htmlparser.py">
+         </FileRef>
+         <FileRef
+            location = "group:test_lxml.py">
+         </FileRef>
+         <FileRef
+            location = "group:test_soup.py">
+         </FileRef>
+         <FileRef
+            location = "group:test_tree.py">
+         </FileRef>
+      </Group>
+   </Group>
+</Workspace>

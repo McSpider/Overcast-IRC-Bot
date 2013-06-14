@@ -8,7 +8,8 @@ from utils import *
 
 
 class channels:
-    def __init__(self):
+    def __init__(self, delegate):
+        self._irc = delegate
         pass
 
     def isConnectedToChannel(self,channel):
@@ -17,9 +18,25 @@ class channels:
     def isOpedInChannel(self,channel):
         pass
 
-    def join(self, irc, channel):
+    def join(self, channel):
         print color.blue + 'Joining channel: ' + color.clear + channel
-        irc.sendRaw(('JOIN :%s\r\n' % channel))
+        self._irc.sendRaw(('JOIN :%s\r\n' % channel))
 
-    def part(self, irc, channel):
+    def part(self, channel):
+        print color.blue + 'Parting channel: ' + color.clear + channel
+        self._irc.sendRaw(('PART %s \r\n' % channel))
+
+    def joinedTo(self, channel):
+        print color.blue + 'Joined channel: ' + color.clear + channel
+        config.channels[channel]["connected"] = True
+        pass
+
+    def partedFrom(self, channel):
+        print color.blue + 'Parted channel: ' + color.clear + channel
+        config.channels[channel]["connected"] = False
+        pass
+
+    def kickedFrom(self, channel):
+        print color.red + 'Kicked from channel: ' + color.clear + channel
+        config.channels[channel]["connected"] = False
         pass

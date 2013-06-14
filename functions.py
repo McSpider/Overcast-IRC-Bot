@@ -5,12 +5,15 @@ import string, re
 import config
 import importlib
 from utils import *
+import datetime
 
 
 class functions:
-    def __init__(self):
+    def __init__(self, delegate):
         self.functionsList = []
         self.loadfunctions()
+        self.bot = delegate
+        self.globalCooldown = {}
         pass
 
     def loadfunctions(self):
@@ -24,6 +27,7 @@ class functions:
                 function = __import__(functionName)
                 command_func = getattr(function, "function")
                 instance = command_func()
+                instance.name = functionName + ext
                 self.functionsList.append(instance)
 
             self.functionsList = sorted(self.functionsList, key=lambda function: function.priority, reverse=True)
@@ -31,59 +35,71 @@ class functions:
     def reloadfunctions(self):
         for func in self.functionsList:
             func = reload(func)
-        self.irc.sendMSG("Functions reloaded", config.masterChannel)
+  #self.irc.sendMSG("Functions reloaded", config.masterChannel)
 
-    def checkForFunction(self, irc, msgComponents, messageType):
+    def checkForFunction(self, msgComponents, messageType):
         msgSenderHostmask = msgComponents[0]
         msgSender = string.lstrip(string.split(msgSenderHostmask,"!")[0],":")
 
+        # Global same sender message cooldown
+        currentTime = datetime.datetime.now()
+        if msgSender in self.globalCooldown and (not (self.globalCooldown[msgSender] == None or currentTime > self.globalCooldown[msgSender])):
+            return
+        self.globalCooldown[msgSender] = currentTime + datetime.timedelta(seconds = 1)
+
+        # Check functions
         for func in self.functionsList:
             # Handle channel messages
-            if ((messageType == "CHANNEL_MSG") or (messageType == "CHANNEL_ACTION_MSG") or (messageType == "QUERY_MSG") or (messageType == "ACTION_MSG")) and len(msgComponents) >= 3:
+            privateMessage = (messageType == "QUERY_MSG") or (messageType == "ACTION_MSG")
+            if ((messageType == "CHANNEL_MSG") or (messageType == "CHANNEL_ACTION_MSG") or privateMessage) and len(msgComponents) >= 3:
                 messageRecipient = msgComponents[2]
-                messageData = {"recipient":messageRecipient,"message":msgComponents[3:], "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType}
+
+                target = messageRecipient
+                if privateMessage:
+                    target = msgSender
+
+                messageData = {"recipient":messageRecipient,"message":msgComponents[3:], "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
                 messageData["message"][0] = messageData["message"][0][1:]
 
                 if "natural" in func.type:
-                    functionExecuted = func.main(irc, messageData, "natural")
-                    if functionExecuted and func.blocking:
-                        func.runCount = func.runCount + 1
-                        print color.blue + "Natural blocking function executed:" + color.clear + func.functionString
-                        return
-                    elif functionExecuted:
-                        func.runCount = func.runCount + 1
-                        print color.blue + "Natural function executed:" + color.clear + func.functionString
+                    self.runFunction(func, messageData, "natural")
 
                 elif "command" in func.type:
                     # Check if the message has a trigger and a subcommand
-                    if len(msgComponents) >= 5:
+                    if len(msgComponents) >= 4:
                         messageCommand = msgComponents[3]
-                        messageSubCommand = msgComponents[4]
-
-                        if (messageRecipient in config.channels) and any(messageCommand in ":" + trigger for trigger in config.triggers) and len(messageData["message"]) >= 2:
-                            if (messageSubCommand == func.command):
-                                if not func.restricted or (func.restricted and irc.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
-                                    print color.blue + "Run command function: " + color.clear + func.functionString
-                                    func.main(irc, messageData, "command")
-                                    func.runCount = func.runCount + 1
-                                    return
+                        if (messageRecipient in config.channels) and any(messageCommand in ":" + trigger for trigger in config.triggers) and len(msgComponents) >= 5:
+                            messageCommand = msgComponents[4]
+                            if (messageCommand == func.command):
+                                if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
+                                    self.runFunction(func, messageData, "command")
                                 else:
-                                    irc.sendMSG("You're not allowed to do that %s" % messageData["sender"], messageRecipient)
+                                    self.bot._irc.sendMSG("You're not allowed to do that %s" % messageData["sender"], messageRecipient)
+                        elif privateMessage:
+                            if (messageCommand[1:] == func.command):
+                                if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
+                                    self.runFunction(func, messageData, "command")
+                                else:
+                                    self.bot._irc.sendMSG("You're not allowed to do that %s" % messageData["sender"], messageRecipient)
 
             # Handle status messages
             else:
                 messageData = {"recipient":None,"message":msgComponents[3:], "sender":None, "senderHostmask":None, "messageType":messageType}
                 if "status" in func.type:
-                    functionExecuted = func.main(irc, messageData, "status")
-                    if functionExecuted and func.blocking:
-                        func.runCount = func.runCount + 1
-                        print color.blue + "Status blocking function executed:" + color.clear + func.functionString
-                        return
-                    elif functionExecuted:
-                        func.runCount = func.runCount + 1
-                        print color.blue + "Status function executed:" + color.clear + func.functionString
+                    self.runFunction(func, messageData, "status")
 
-
+    def runFunction(self, func, messageData, type):
+        # try:
+        functionExecuted = func.main(self.bot, messageData, type)
+        if functionExecuted and func.blocking:
+            func.runCount = func.runCount + 1
+            print color.blue + "Blocking %s function executed:" % type + color.clear + func.functionString
+            return
+        elif functionExecuted:
+            func.runCount = func.runCount + 1
+            print color.blue + "%s function executed:" % type.capitalize() + color.clear + func.name
+        # except Exception:
+        #         print color.red + "Exception raised!"
 
 
 

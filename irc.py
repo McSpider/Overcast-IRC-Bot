@@ -4,15 +4,14 @@ import string, re
 import datetime
 
 from utils import *
-from functions import *
 from channels import *
 
 
 class irc:
-    def __init__(self):
+    def __init__(self, delegate):
         self._socket = socket.socket()
-        self._functions = functions()
-        self._channels = channels()
+        self._channels = channels(self)
+        self._delegate = delegate;
 
     def connectToServer(self, server, port):
         print color.b_blue + 'Connecting to server: ' + color.clear + server + ':' + str(port)
@@ -63,16 +62,20 @@ class irc:
         else: print msg
         
         msgComponents = string.split(msg)
-        self._functions.checkForFunction(self, msgComponents, messageType)
-
+        if re.match("^.* 366 %s .*:End of /NAMES.*$" % (config.nick), msg):
+            self._channels.joinedTo(msgComponents[3])
+        if (messageType == "KICK_NOTICE") and re.match("^.*%s.*$" % (config.nick), msg):
+            self._channels.kickedFrom(msgComponents[2])
 
         if (messageType == "PING") and len(msgComponents) == 2:
             self.sendPingReply(msgComponents[1])
 
-        if (msg == ":Overcast MODE Overcast :+i"):
+        if (msg == ":" + config.nick + " MODE " + config.nick + " :+i"):
             print color.b_cyan + "Overcast IRC Bot - Connected to irc server\n" + color.clear
             for channel, data in config.channels.items():
-                self._channels.join(self,channel)
+                self._channels.join(channel)
+
+        self._delegate.parseMessage(msgComponents, messageType)
 
 
     def read(self):
@@ -126,14 +129,5 @@ class irc:
     def sendPingReply(self, server): 
         print color.blue + 'Sending ping reply: ' + color.clear + server
         self.sendRaw("PONG %s\r\n" % server)
-
-
-    def isUserAuthed(self,user,hostmask):
-        hostmask = string.split(hostmask,"!~")[1]
-        print hostmask
-        if (hostmask in config.authedHostmasks):
-            return True
-
-        return False
 
 
