@@ -19,8 +19,8 @@ class function_template(object):
         # Specify the functions priority from 100 to 1
         self.priority = 50
 
-        # Specify the functions trigger. (Not needed for natural functions.)
-        self.command = None
+        # Specify the functions triggerable commands. (Not needed for natural functions.)
+        self.commands = []
 
         # Specify if the function requires auth status, can also be handled manually.
         self.restricted = False

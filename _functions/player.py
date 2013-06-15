@@ -5,7 +5,7 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.command = "player"
+        self.commands = ["player"]
         self.functionString = "Show the stats for a player."
 
     def main(self, bot, msgData, funcType):
@@ -31,7 +31,7 @@ class function(function_template):
             elif (data.getcode() == int('200')):
                 soup = BeautifulSoup(data)
                 
-                last_seen = string.join(soup.find("span", text=re.compile((".*%s.*" % str(player)))).findParent('h1').contents[3].contents[0].split())
+                last_seen = string.join(soup.find("span", text=re.compile(".*%s.*" % str(player), re.IGNORECASE)).findParent('h1').contents[3].contents[0].split())
 
                 kills = soup.find("small", text=["kills"]).findParent('h2').contents[0].strip('\n')
                 deaths = soup.find("small", text=["deaths"]).findParent('h2').contents[0].strip('\n')

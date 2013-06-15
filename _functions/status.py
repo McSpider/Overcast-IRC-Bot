@@ -5,7 +5,7 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.command = "status"
+        self.commands = ["status"]
         self.functionString = "Get the Overcast server status."
     
     def main(self, bot, msgData, funcType):

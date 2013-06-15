@@ -42,10 +42,8 @@ class functions:
         msgSender = string.lstrip(string.split(msgSenderHostmask,"!")[0],":")
 
         # Global same sender message cooldown
-        currentTime = datetime.datetime.now()
-        if msgSender in self.globalCooldown and (not (self.globalCooldown[msgSender] == None or currentTime > self.globalCooldown[msgSender])):
+        if msgSender in self.globalCooldown and (not (self.globalCooldown[msgSender] == None or datetime.datetime.now() > self.globalCooldown[msgSender])):
             return
-        self.globalCooldown[msgSender] = currentTime + datetime.timedelta(seconds = 1)
 
         # Check functions
         for func in self.functionsList:
@@ -64,19 +62,20 @@ class functions:
                 if "natural" in func.type:
                     self.runFunction(func, messageData, "natural")
 
-                elif "command" in func.type:
+                if "command" in func.type:
                     # Check if the message has a trigger and a subcommand
                     if len(msgComponents) >= 4:
                         messageCommand = msgComponents[3]
-                        if (messageRecipient in config.channels) and any(messageCommand in ":" + trigger for trigger in config.triggers) and len(msgComponents) >= 5:
+                        messageData["message"] = msgComponents[4:]
+                        if (messageRecipient in config.channels) and any(messageCommand.lower() in ":" + trigger.lower() for trigger in config.triggers) and len(msgComponents) >= 5:
                             messageCommand = msgComponents[4]
-                            if (messageCommand == func.command):
+                            if messageCommand in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
                                     self.runFunction(func, messageData, "command")
                                 else:
                                     self.bot._irc.sendMSG("You're not allowed to do that %s" % messageData["sender"], messageRecipient)
                         elif privateMessage:
-                            if (messageCommand[1:] == func.command):
+                            if messageCommand[1:] in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
                                     self.runFunction(func, messageData, "command")
                                 else:
@@ -98,6 +97,11 @@ class functions:
         elif functionExecuted:
             func.runCount = func.runCount + 1
             print color.blue + "%s function executed:" % type.capitalize() + color.clear + func.name
+
+        if functionExecuted:
+            self.globalCooldown[messageData["sender"]] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
+            return True
+        return False
         # except Exception:
         #         print color.red + "Exception raised!"
 

@@ -11,15 +11,26 @@ class function(function_template):
         self.functionString = "I'm alive!"
         self.blocking = True
 
-        self.cooldown = None
+        self.cooldown = {}
 
     def main(self, bot, msgData, funcType):
         message = string.join(msgData["message"])
-        if re.match("^hi$", message) or re.match("^hello$", message):
-            currentTime = datetime.datetime.now()
-            if (self.cooldown == None) or (currentTime > self.cooldown):
-                bot._irc.sendMSG("hi!", msgData["target"])
-                self.cooldown = currentTime + datetime.timedelta(seconds = 30)
+        currentTime = datetime.datetime.now()
+        cooldownID = msgData["sender"] + message
+        print cooldownID
+
+        if re.match("^(hi|hello) %s.*?$" % config.nick, message, re.IGNORECASE) or re.match("^%s: (hi|hello)$" % config.nick, message, re.IGNORECASE):
+            if self.checkCooldownForID(cooldownID):
+                bot._irc.sendMSG("Hello %s" % msgData["sender"], msgData["target"])
+                self.cooldown[cooldownID] = currentTime + datetime.timedelta(seconds = 30)
+                return True
+        if re.match("^.*?how (do you do|are you) %s?" % config.nick, message, re.IGNORECASE):
+            if self.checkCooldownForID(cooldownID):
+                bot._irc.sendMSG("I'm good, thanks.", msgData["target"])
+                self.cooldown[cooldownID] = currentTime + datetime.timedelta(seconds = 30)
                 return True
 
         return False
+
+    def checkCooldownForID(self, cooldownID):
+        return (cooldownID in self.cooldown and ((self.cooldown[cooldownID] == None) or (currentTime > self.cooldown[cooldownID]))) or not cooldownID in self.cooldown

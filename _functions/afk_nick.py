@@ -7,7 +7,7 @@ class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.type = ["status","command"]
-        self.command = "afk_msg"
+        self.commands = ["afk_msg"]
         self.priority = 100
         self.functionString = "AFK nick change kicker."
         self.blocking = True
@@ -33,8 +33,8 @@ class function(function_template):
                     return True
         
         if (funcType == "command"):
-            if len(msgData["message"]) > 2:
-                subcommand = msgData["message"][2]
+            if len(msgData["message"]) > 1:
+                subcommand = msgData["message"][1]
                 if (subcommand == "add"):
                     if (msgData["target"] in self.enabledChannels):
                         bot._irc.sendMSG("This channel (%s) is already being monitored." % (msgData["target"]), msgData["target"])

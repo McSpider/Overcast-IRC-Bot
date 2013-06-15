@@ -5,19 +5,19 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.command = "func"
+        self.commands = ["func","functions"]
         self.functionString = "Manage bot functions."
         self.restricted = True
 
     def main(self, bot, msgData, funcType):
-        if len(msgData["message"]) > 2:
-            if msgData["message"][2] == "reload":
+        if len(msgData["message"]) > 1:
+            if msgData["message"][1] == "reload":
                 bot._functions.reloadfunctions()
                 return True
-            if msgData["message"][2] == "list":
+            if msgData["message"][1] == "list":
                 bot._irc.sendMSG("Functions page 1 of 1:", msgData["target"])
                 for func in bot._functions.functionsList:
-                    bot._irc.sendMSG("%s - \"%s\"  t:%s r:%s" % (func.command, func.functionString, func.type, int(func.restricted)), msgData["target"])
+                    bot._irc.sendMSG("%s - \"%s\"  t:%s r:%s" % (", ".join(func.commands), func.functionString, func.type, int(func.restricted)), msgData["target"])
                 return True
         else:
             bot._irc.sendMSG("Subcommands: reload & list.", msgData["target"])

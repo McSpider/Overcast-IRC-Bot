@@ -5,19 +5,19 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.command = "help"
+        self.commands = ["help"]
         self.functionString = "Overcast bot help."
         self.blocking = True
         self.priority = 2
 
     def main(self, bot, msgData, funcType):
-        if len(msgData["message"]) > 2:
-            subcommand = msgData["message"][2]
+        if len(msgData["message"]) > 1:
+            subcommand = msgData["message"][1]
             for func in bot._functions.functionsList:
-                if func.name == subcommand:
+                if re.match("^%s.*?$" % subcommand, func.name, re.IGNORECASE):
                     bot._irc.sendMSG("Info for function: %s" % (func.name), msgData["target"])
                     bot._irc.sendMSG("%s" % func.functionString, msgData["target"])
-                    bot._irc.sendMSG("Restricted:%s Type:%s" % (bool(func.restricted), str(func.type)), msgData["target"])
+                    bot._irc.sendMSG("Restricted:%s Type:%s" % (bool(func.restricted), ', '.join(func.type)), msgData["target"])
                     if (func.helpString != None):
                         bot._irc.sendMSG(func.helpString, msgData["target"])
                     return True
