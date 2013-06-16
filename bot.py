@@ -37,4 +37,3 @@ try:
     _bot.main()
 except KeyboardInterrupt:
     pass
-

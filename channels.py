@@ -16,10 +16,20 @@ class channels:
         pass
 
     def isOpedInChannel(self,channel):
-        pass
+        if "+o" in config.channels[channel]["botFlags"]:
+            return True
+        return False
+
+
+    def setOpedInChannel(self,channel,bool):
+        if bool:
+            config.channels[channel]["botFlags"].append("+o")
+        else:
+            config.channels[channel]["botFlags"].remove("+o")
 
     def join(self, channel):
         print color.blue + 'Joining channel: ' + color.clear + channel
+        config.channels[channel] = {"connected":False,"chanFlags":[],"botFlags":[]}
         self._irc.sendRaw(('JOIN :%s\r\n' % channel))
 
     def part(self, channel):

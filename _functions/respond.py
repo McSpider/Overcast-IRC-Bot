@@ -17,7 +17,6 @@ class function(function_template):
         message = string.join(msgData["message"])
         currentTime = datetime.datetime.now()
         cooldownID = msgData["sender"] + message
-        print cooldownID
 
         if re.match("^(hi|hello) %s.*?$" % config.nick, message, re.IGNORECASE) or re.match("^%s: (hi|hello)$" % config.nick, message, re.IGNORECASE):
             if self.checkCooldownForID(cooldownID):

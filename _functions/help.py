@@ -17,12 +17,14 @@ class function(function_template):
                 if re.match("^%s.*?$" % subcommand, func.name, re.IGNORECASE):
                     bot._irc.sendMSG("Info for function: %s" % (func.name), msgData["target"])
                     bot._irc.sendMSG("%s" % func.functionString, msgData["target"])
-                    bot._irc.sendMSG("Restricted:%s Type:%s" % (bool(func.restricted), ', '.join(func.type)), msgData["target"])
+                    bot._irc.sendMSG("Restricted: %s - Type: %s" % (bool(func.restricted), prettyListString(func.type," & ")), msgData["target"])
+                    if "command" in func.type:
+                        bot._irc.sendMSG("Commands: %s" % (prettyListString(func.commands," & ")), msgData["target"])
                     if (func.helpString != None):
                         bot._irc.sendMSG(func.helpString, msgData["target"])
                     return True
         else:
-            bot._irc.sendMSG("Trigger the bot with: \"%s\"" % ", ".join(config.triggers), msgData["target"])
+            bot._irc.sendMSG("Trigger the bot with: \"%s\"" % prettyListString(config.triggers," or "), msgData["target"])
             
             # List all the unrestricted functions
             functionMsg = []

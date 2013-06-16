@@ -43,3 +43,10 @@ class function_template(object):
     def main(self, irc, msgData):
         irc.sendMSG("Function not setup, still using template.", config.masterChannel)
         return True
+
+
+def prettyListString(list, joiner):
+    result = ", ".join(list[:1])
+    if len(list) > 1:
+        result = result + joiner + list[-1]
+    return result

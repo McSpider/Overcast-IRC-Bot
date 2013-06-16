@@ -32,11 +32,6 @@ class functions:
 
             self.functionsList = sorted(self.functionsList, key=lambda function: function.priority, reverse=True)
 
-    def reloadfunctions(self):
-        for func in self.functionsList:
-            func = reload(func)
-  #self.irc.sendMSG("Functions reloaded", config.masterChannel)
-
     def checkForFunction(self, msgComponents, messageType):
         msgSenderHostmask = msgComponents[0]
         msgSender = string.lstrip(string.split(msgSenderHostmask,"!")[0],":")
@@ -104,9 +99,5 @@ class functions:
         return False
         # except Exception:
         #         print color.red + "Exception raised!"
-
-
-
-
 
 

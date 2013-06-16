@@ -70,10 +70,20 @@ class irc:
         if (messageType == "PING") and len(msgComponents) == 2:
             self.sendPingReply(msgComponents[1])
 
-        if (msg == ":" + config.nick + " MODE " + config.nick + " :+i"):
-            print color.b_cyan + "Overcast IRC Bot - Connected to irc server\n" + color.clear
-            for channel, data in config.channels.items():
-                self._channels.join(channel)
+        if (messageType == "PING") and len(msgComponents) == 2:
+            self.sendPingReply(msgComponents[1])
+
+        if (messageType == "MODECHANGE_NOTICE"):
+            if (msg == ":" + config.nick + " MODE " + config.nick + " :+i"):
+                print color.b_cyan + "Overcast IRC Bot - Connected to irc server\n" + color.clear
+                for channel, data in config.channels.items():
+                    self._channels.join(channel)
+
+            #:McSpider!~McSpider@192.65.241.17 MODE ##mcspider +o Overcast1
+            if re.match("^:.*? MODE .* \+o %s$" % config.nick, msg):
+                channel = msgComponents[2]
+                print color.b_purple + "Oped in channel: " + color.clear + channel
+                self._channels.setOpedInChannel(channel,True)
 
         self._delegate.parseMessage(msgComponents, messageType)
 

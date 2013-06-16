@@ -30,4 +30,3 @@ class function(function_template):
 
         if error: bot._irc.sendMSG(error, msgData["target"])
         return True
-
