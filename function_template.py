@@ -47,7 +47,7 @@ def prettyListString(alist, joiner, cc = None):
     if not cc == None:
         alist = [cc + item + color.irc_clear for item in alist]
 
-    result = ", ".join(alist[:1])
+    result = ", ".join(alist[:-1])
     if len(alist) > 1:
         result = result + joiner + alist[-1]
     return result
