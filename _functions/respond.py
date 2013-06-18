@@ -18,12 +18,12 @@ class function(function_template):
         currentTime = datetime.datetime.now()
         cooldownID = msgData["sender"] + message
 
-        if re.match("^(hi|hello) %s.*?$" % config.nick, message, re.IGNORECASE) or re.match("^%s: (hi|hello)$" % config.nick, message, re.IGNORECASE):
+        if re.match("^(hi|hello) %s.*?$" % bot._irc.nick, message, re.IGNORECASE) or re.match("^%s: (hi|hello)$" % bot._irc.nick, message, re.IGNORECASE):
             if self.checkCooldownForID(cooldownID):
                 bot._irc.sendMSG("Hello %s" % msgData["sender"], msgData["target"])
                 self.cooldown[cooldownID] = currentTime + datetime.timedelta(seconds = 30)
                 return True
-        if re.match("^.*?how (do you do|are you) %s?" % config.nick, message, re.IGNORECASE):
+        if re.match("^.*?how (do you do|are you) %s?" % bot._irc.nick, message, re.IGNORECASE):
             if self.checkCooldownForID(cooldownID):
                 bot._irc.sendMSG("I'm good, thanks.", msgData["target"])
                 self.cooldown[cooldownID] = currentTime + datetime.timedelta(seconds = 30)

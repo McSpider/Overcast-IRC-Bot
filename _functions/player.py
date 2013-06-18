@@ -11,8 +11,8 @@ class function(function_template):
     def main(self, bot, msgData, funcType):
         message = msgData["message"]
         player = "";
-        if len(message) >= 3:
-            player = message[2]
+        if len(message) > 1:
+            player = message[1]
         else:
             bot._irc.sendMSG("No player specified", msgData["target"])
             return False

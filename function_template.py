@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-import config
-
 import re
 import string
 
 import urllib
 from bs4 import BeautifulSoup
-
+from utils import *
 
 class function_template(object):
     def __init__(self):
@@ -40,13 +38,16 @@ class function_template(object):
         self.runCount = 0
 
 
-    def main(self, irc, msgData):
-        irc.sendMSG("Function not setup, still using template.", config.masterChannel)
+    def main(self, bot, msgData, funcType):
+        irc.sendMSG("Function not setup, still using template.", bot.masterChannel)
         return True
 
 
-def prettyListString(list, joiner):
-    result = ", ".join(list[:1])
-    if len(list) > 1:
-        result = result + joiner + list[-1]
+def prettyListString(alist, joiner, cc = None):
+    if not cc == None:
+        alist = [cc + item + color.irc_clear for item in alist]
+
+    result = ", ".join(alist[:1])
+    if len(alist) > 1:
+        result = result + joiner + alist[-1]
     return result

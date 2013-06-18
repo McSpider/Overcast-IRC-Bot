@@ -11,10 +11,21 @@ class irc:
     def __init__(self, delegate):
         self._socket = socket.socket()
         self._channels = channels(self)
-        self._delegate = delegate;
+        self._bot = delegate;
+
+        self.ident = None
+        self.password = None
+        self.nick = None
+        self.realname = None
+
+        self.server = None
+        self.serverPort = None
+
 
     def connectToServer(self, server, port):
         print color.b_blue + 'Connecting to server: ' + color.clear + server + ':' + str(port)
+        self.server = server
+        self.serverPort = port
         self._socket.connect((server, port))
     
 
@@ -55,37 +66,81 @@ class irc:
 
         return "GENERIC_MESSAGE"
 
+    def getMessageData(self, msg, type):
+        msgComponents = string.split(msg)
+        messageData = {}
+
+        prefix = None
+        command = None
+        params = None
+
+
+        if msgComponents[0][0] == ":":
+            prefix = msgComponents[0]
+
+            username = None
+            nick = None
+            hostmask = None
+            server = None
+
+            if "!" in prefix and "@" in prefix:
+                split = string.split(prefix,"!")
+                nick = split[0]
+
+                split = string.split(split[1],"@")
+                hostmask = split[1]
+                username = split[0]
+                print "nickuserhost: " + nick + " " + username + " " + hostmask
+            else:
+                if type == "MODECHANGE_NOTICE":
+                    nick = prefix
+                    print "nick: " + nick
+                else:
+                    server = prefix
+                    print "server: " + server
+
+
     def parseRawMessage(self, msg):
         msg = string.rstrip(msg)
         messageType = self.getMessageType(msg)
-        if config.debug: print color.cyan + str(datetime.datetime.now()) + " " + color.green + messageType + " " + color.clear + msg
+        messageData = self.getMessageData(msg,messageType)
+        if self._bot.debug: print color.cyan + str(datetime.datetime.now()) + " " + color.green + messageType + " " + color.clear + msg
         else: print msg
         
         msgComponents = string.split(msg)
-        if re.match("^.* 366 %s .*:End of /NAMES.*$" % (config.nick), msg):
+        if re.match("^.* 366 %s .*:End of /NAMES.*$" % (self.nick), msg):
             self._channels.joinedTo(msgComponents[3])
-        if (messageType == "KICK_NOTICE") and re.match("^.*%s.*$" % (config.nick), msg):
+        if (messageType == "KICK_NOTICE") and re.match("^.*%s.*$" % (self.nick), msg):
             self._channels.kickedFrom(msgComponents[2])
 
         if (messageType == "PING") and len(msgComponents) == 2:
             self.sendPingReply(msgComponents[1])
 
-        if (messageType == "PING") and len(msgComponents) == 2:
-            self.sendPingReply(msgComponents[1])
+        if messageType == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % self.nick, msg):
+            print color.purple + 'Identify request recieved.' + color.clear
+            if self.password:
+                self.sendMSG(('identify %s' % self.password),'NickServ')
+            else:
+                print color.red + 'No password specified, not authenticating.' + color.clear
 
         if (messageType == "MODECHANGE_NOTICE"):
-            if (msg == ":" + config.nick + " MODE " + config.nick + " :+i"):
+            if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
                 print color.b_cyan + "Overcast IRC Bot - Connected to irc server\n" + color.clear
-                for channel, data in config.channels.items():
+                for channel, data in self._bot.channels.items():
                     self._channels.join(channel)
 
             #:McSpider!~McSpider@192.65.241.17 MODE ##mcspider +o Overcast1
-            if re.match("^:.*? MODE .* \+o %s$" % config.nick, msg):
+            if re.match("^:.*? MODE .* \+o %s$" % self.nick, msg):
                 channel = msgComponents[2]
                 print color.b_purple + "Oped in channel: " + color.clear + channel
                 self._channels.setOpedInChannel(channel,True)
+            if re.match("^:.*? MODE .* \-o %s$" % self.nick, msg):
+                channel = msgComponents[2]
+                print color.b_purple + "De-Oped in channel: " + color.clear + channel
+                self._channels.setOpedInChannel(channel,False)
 
-        self._delegate.parseMessage(msgComponents, messageType)
+
+        self._bot.parseMessage(msgComponents, messageType)
 
 
     def read(self):
@@ -119,11 +174,10 @@ class irc:
         self.sendRaw('USER %s %s %s \r\n' % (username, " 0 * :", realname))
         self.sendRaw('NICK %s\r\n' % nick)
 
-        if password:
-            self.sendRaw(('PASS %s \r\n' % password))
-            self.sendMSG(('identify %s' % password),'NickServ')
-        else:
-            print color.red + 'No password specified, not authenticating.' + color.clear
+        self.ident = username
+        self.nick = nick
+        self.realname = realname
+        self.password = password
 
 
     def sendRaw(self, message):
@@ -135,6 +189,18 @@ class irc:
             print color.red + 'No message recipient specified! ' + color.clear
         print color.blue + 'Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         self._socket.send("PRIVMSG %s :%s\r\n" % (recipient, message))
+
+    def sendNoticeMSG(self, message, recipient):
+        if recipient == None:
+            print color.red + 'No message recipient specified! ' + color.clear
+        print color.blue + 'Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+        self._socket.send("NOTICE %s :%s\r\n" % (recipient, message))
+
+    def sendActionMSG(self, message, recipient):
+        if recipient == None:
+            print color.red + 'No message recipient specified! ' + color.clear
+        print color.blue + 'Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+        self._socket.send("PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1))
 
     def sendPingReply(self, server): 
         print color.blue + 'Sending ping reply: ' + color.clear + server

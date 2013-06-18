@@ -8,12 +8,6 @@
       location = "container:channels.py">
    </FileRef>
    <FileRef
-      location = "container:color.py">
-   </FileRef>
-   <FileRef
-      location = "container:config.py">
-   </FileRef>
-   <FileRef
       location = "container:function_template.py">
    </FileRef>
    <FileRef
@@ -40,9 +34,6 @@
       </FileRef>
       <FileRef
          location = "group:face.py">
-      </FileRef>
-      <FileRef
-         location = "group:func.py">
       </FileRef>
       <FileRef
          location = "group:help.py">

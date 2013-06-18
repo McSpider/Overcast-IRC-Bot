@@ -2,7 +2,6 @@
 import os, sys
 import string, re
 
-import config
 import importlib
 from utils import *
 import datetime
@@ -38,6 +37,7 @@ class functions:
 
         # Global same sender message cooldown
         if msgSender in self.globalCooldown and (not (self.globalCooldown[msgSender] == None or datetime.datetime.now() > self.globalCooldown[msgSender])):
+            print color.b_red + "Ignoring possible flood message" + color.clear
             return
 
         # Check functions
@@ -51,36 +51,42 @@ class functions:
                 if privateMessage:
                     target = msgSender
 
-                messageData = {"recipient":messageRecipient,"message":msgComponents[3:], "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
+                messageData = {"recipient":messageRecipient,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
                 messageData["message"][0] = messageData["message"][0][1:]
 
                 if "natural" in func.type:
-                    self.runFunction(func, messageData, "natural")
+                    funcExectuted = self.runFunction(func, messageData, "natural")
+                    if funcExectuted and func.blocking:
+                        return
 
                 if "command" in func.type:
                     # Check if the message has a trigger and a subcommand
                     if len(msgComponents) >= 4:
                         messageCommand = msgComponents[3]
                         messageData["message"] = msgComponents[4:]
-                        if (messageRecipient in config.channels) and any(messageCommand.lower() in ":" + trigger.lower() for trigger in config.triggers) and len(msgComponents) >= 5:
+                        if (messageRecipient in self.bot.channels) and any(re.match("^:%s.*?$" % (trigger), messageCommand, re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
                             messageCommand = msgComponents[4]
                             if messageCommand in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
-                                    self.runFunction(func, messageData, "command")
-                                else:
-                                    self.bot._irc.sendMSG("You're not allowed to do that %s" % messageData["sender"], messageRecipient)
+                                    funcExectuted = self.runFunction(func, messageData, "command")
+                                    if funcExectuted and func.blocking:
+                                        return
+                                else: self.notAllowedMessage(messageData["sender"],messageRecipient)
                         elif privateMessage:
                             if messageCommand[1:] in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
-                                    self.runFunction(func, messageData, "command")
-                                else:
-                                    self.bot._irc.sendMSG("You're not allowed to do that %s" % messageData["sender"], messageRecipient)
+                                    funcExectuted = self.runFunction(func, messageData, "command")
+                                    if funcExectuted and func.blocking:
+                                        return
+                                else: self.bot.notAllowedMessage(messageData["sender"],messageRecipient)
 
             # Handle status messages
             else:
-                messageData = {"recipient":None,"message":msgComponents[3:], "sender":None, "senderHostmask":None, "messageType":messageType}
+                messageData = {"recipient":None,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":None, "senderHostmask":None, "messageType":messageType}
                 if "status" in func.type:
-                    self.runFunction(func, messageData, "status")
+                    funcExectuted = self.runFunction(func, messageData, "status")
+                    if funcExectuted and func.blocking:
+                        return
 
     def runFunction(self, func, messageData, type):
         # try:
@@ -88,7 +94,6 @@ class functions:
         if functionExecuted and func.blocking:
             func.runCount = func.runCount + 1
             print color.blue + "Blocking %s function executed:" % type + color.clear + func.functionString
-            return
         elif functionExecuted:
             func.runCount = func.runCount + 1
             print color.blue + "%s function executed:" % type.capitalize() + color.clear + func.name
@@ -99,5 +104,4 @@ class functions:
         return False
         # except Exception:
         #         print color.red + "Exception raised!"
-
 
