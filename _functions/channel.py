@@ -19,9 +19,9 @@ class function(function_template):
                 bot._irc._channels.part(msgData["message"][2])
                 bot._irc.sendMSG("Parting channel: %s" % msgData["message"][2], msgData["target"])
             if msgData["message"][1] == "list":
-                bot._irc.sendMSG("Connected channels", msgData["target"])
+                bot._irc.sendMSG("Connected channels:", msgData["sender"])
                 for chan, data in bot.channels.items():
-                    bot._irc.sendMSG("%s * %s Connected: %s" % (chan, prettyListString(data["botFlags"], " & "), data["connected"]), msgData["target"])
+                    bot._irc.sendMSG("%s: %s Connected: %s" % (chan, prettyListString(data["botFlags"], " & "), data["connected"]), msgData["sender"])
         else:
             bot._irc.sendMSG("Subcommands: join & part.", msgData["target"])
 

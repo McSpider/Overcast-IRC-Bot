@@ -48,7 +48,7 @@ def prettyListString(alist, joiner, cc = None):
         if len(alist) > 1:
             result = result + joiner + alist[-1]
         return result
-    else: return alist[0]
+    elif len(alist) == 1: return alist[0]
 
 def loadMessagesFile(file):
     lines1 = open(file).read().splitlines()

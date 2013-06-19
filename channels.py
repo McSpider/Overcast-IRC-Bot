@@ -15,7 +15,7 @@ class channels:
         pass
 
     def isOpedInChannel(self,channel):
-        if "+o" in _irc._bot.channels[channel]["botFlags"]:
+        if "+o" in self._irc._bot.channels[channel]["botFlags"]:
             return True
         return False
 

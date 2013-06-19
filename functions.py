@@ -75,7 +75,8 @@ class functions:
                                 else: self.bot.notAllowedMessage(messageData["sender"],messageRecipient)
                                 return
 
-                        if (messageRecipient in self.bot.channels or privateMessage) and any(msgComponents[3].lower() in ":" + trigger.lower() for trigger in self.bot.triggers) and len(msgComponents) >= 5:
+                        # msgComponents[3].lower() in ":" + trigger.lower()
+                        if (messageRecipient in self.bot.channels or privateMessage) and any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
                             messageCommand = msgComponents[4]
                             messageData["message"] = msgComponents[4:]
                             if messageCommand in func.commands:
