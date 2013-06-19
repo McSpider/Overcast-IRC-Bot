@@ -15,16 +15,16 @@ class function(function_template):
             subcommand = msgData["message"][1]
             for func in bot._functions.functionsList:
                 if re.match("^%s.*?$" % re.escape(subcommand), func.name, re.IGNORECASE):
-                    bot._irc.sendMSG("Info for function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), msgData["target"])
-                    bot._irc.sendMSG("%s" % func.functionString, msgData["target"])
-                    bot._irc.sendMSG("Restricted: %s - Type: %s" % (bool(func.restricted), prettyListString(func.type," & ")), msgData["target"])
+                    bot._irc.sendMSG("Info for function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), msgData["sender"])
+                    bot._irc.sendMSG("%s" % func.functionString, msgData["sender"])
+                    bot._irc.sendMSG("Restricted: %s - Type: %s" % (bool(func.restricted), prettyListString(func.type," & ")), msgData["sender"])
                     if "command" in func.type:
-                        bot._irc.sendMSG("Commands: %s" % (prettyListString(func.commands," & ")), msgData["target"])
-                    if (func.helpString != None):
-                        bot._irc.sendMSG(func.helpString, msgData["target"])
+                        bot._irc.sendMSG("Commands: %s" % (prettyListString(func.commands," & ")), msgData["sender"])
+                    if not func.helpString == None:
+                        bot._irc.sendMSG(func.helpString, msgData["sender"])
                     return True
         else:
-            bot._irc.sendMSG("Trigger the bot with: \"%s\" " % prettyListString(bot.triggers," or ",color.irc_darkgreen), msgData["target"])
+            bot._irc.sendMSG("Trigger the bot with: \"%s\" " % prettyListString(bot.triggers," or ",color.irc_darkgreen), msgData["sender"])
             
             functionMsg = []
             for func in bot._functions.functionsList:
@@ -41,9 +41,9 @@ class function(function_template):
                     continue
                 functionMsg.append(color.irc_lightgrey + funcType + color.irc_clear + func.name)
             if len(functionMsg) > 0:
-                bot._irc.sendMSG("Functions you can trigger:", msgData["target"])
-                bot._irc.sendMSG(", ".join(functionMsg), msgData["target"])
-                bot._irc.sendMSG("For more info about a specific function use: help {function name}", msgData["target"])
+                bot._irc.sendMSG("Functions you can trigger:", msgData["sender"])
+                bot._irc.sendMSG(", ".join(functionMsg), msgData["sender"])
+                bot._irc.sendMSG("For more info about a specific function use: help {function name}", msgData["sender"])
                 return True
 
         return False
