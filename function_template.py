@@ -51,3 +51,10 @@ def prettyListString(alist, joiner, cc = None):
     if len(alist) > 1:
         result = result + joiner + alist[-1]
     return result
+
+def loadMessagesFile(file):
+    lines = open(file).read().splitlines()
+    lines = [line for line in lines if not line.startswith('#')]
+    lines = (line for line in lines if line)
+
+    return lines

@@ -12,5 +12,8 @@ class function(function_template):
         self.blocking = True
 
     def main(self, bot, msgData, funcType):
-        bot._irc.quit()
+        if len(msgData["message"]) > 1:
+            argument = " ".join(msgData["message"][1:])
+            bot._irc.quit("%s" % argument)
+        else: bot._irc.quit("And the sun shines once again.")
         return True

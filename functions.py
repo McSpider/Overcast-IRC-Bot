@@ -64,7 +64,8 @@ class functions:
                     if len(msgComponents) >= 4:
                         messageCommand = msgComponents[3]
                         messageData["message"] = msgComponents[4:]
-                        if (messageRecipient in self.bot.channels) and any(re.match("^:%s.*?$" % (trigger), messageCommand, re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
+                        # any(re.match("^:%s.*?$" % (trigger), messageCommand, re.IGNORECASE) for trigger in self.bot.triggers)
+                        if (messageRecipient in self.bot.channels) and any(messageCommand.lower() in ":" + trigger.lower() for trigger in self.bot.triggers) and len(msgComponents) >= 5:
                             messageCommand = msgComponents[4]
                             if messageCommand in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):

@@ -12,8 +12,7 @@ class function(function_template):
         self.functionString = "Slap a person."
         self.blocking = True
 
-        slaps = open("./_data/slaps.txt").read().splitlines()
-        self.slaps = [slap for slap in slaps if not slap.startswith('#')]
+        slaps = loadMessagesFile("./_data/slaps.txt")
         self.ouch = ["Ouch!","That hurt!","Oww!","Will you stop that!",">_>"]
         self.randomness = []
 
@@ -21,7 +20,7 @@ class function(function_template):
         if (funcType == "natural"):
             message = string.join(msgData["message"])
 
-            if re.match("^.*?(slaps|whacks) %s.*?$" % bot._irc.nick, message, re.IGNORECASE) or re.match("^.*?%s.*?(slap|whack).*?$" % bot._irc.nick, message, re.IGNORECASE):
+            if re.match("^.*?(slaps|whacks) %s.*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE) or re.match("^.*?gives.*?%s a.*?(slap|whack).*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE):
                 bot._irc.sendMSG(random.choice(self.ouch), msgData["target"])
                 return True
 

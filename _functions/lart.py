@@ -10,8 +10,7 @@ class function(function_template):
         self.functionString = "Lart users."
         self.helpString = "Credits to jcp/JZBot for the larts file."
 
-        larts = open("./_data/larts.txt").read().splitlines()
-        self.larts = [lart for lart in larts if not lart.startswith('#')]
+        loadMessagesFile("./_data/larts.txt")
         self.randomness = []
 
     def main(self, bot, msgData, funcType):
@@ -21,7 +20,7 @@ class function(function_template):
           if not alart in self.randomness:
                 lart = alart
                 self.randomness.append(alart)
-                if len(self.randomness) > 10:
+                if len(self.randomness) > int(len(self.larts)/2):
                     del self.randomness[0]
 
         if len(msgData["message"]) > 1:

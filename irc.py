@@ -108,15 +108,15 @@ class irc:
         else: print msg
         
         msgComponents = string.split(msg)
-        if re.match("^.* 366 %s .*:End of /NAMES.*$" % (self.nick), msg):
+        if re.match("^.* 366 %s .*:End of /NAMES.*$" % re.escape(self.nick), msg):
             self._channels.joinedTo(msgComponents[3])
-        if (messageType == "KICK_NOTICE") and re.match("^.*%s.*$" % (self.nick), msg):
+        if (messageType == "KICK_NOTICE") and re.match("^.*%s.*$" % re.escape(self.nick), msg):
             self._channels.kickedFrom(msgComponents[2])
 
         if (messageType == "PING") and len(msgComponents) == 2:
             self.sendPingReply(msgComponents[1])
 
-        if messageType == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % self.nick, msg):
+        if messageType == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
             print color.purple + 'Identify request recieved.' + color.clear
             if self.password:
                 self.sendMSG(('identify %s' % self.password),'NickServ')
@@ -130,11 +130,11 @@ class irc:
                     self._channels.join(channel)
 
             #:McSpider!~McSpider@192.65.241.17 MODE ##mcspider +o Overcast1
-            if re.match("^:.*? MODE .* \+o %s$" % self.nick, msg):
+            if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
                 channel = msgComponents[2]
                 print color.b_purple + "Oped in channel: " + color.clear + channel
                 self._channels.setOpedInChannel(channel,True)
-            if re.match("^:.*? MODE .* \-o %s$" % self.nick, msg):
+            if re.match("^:.*? MODE .* \-o %s$" % re.escape(self.nick), msg):
                 channel = msgComponents[2]
                 print color.b_purple + "De-Oped in channel: " + color.clear + channel
                 self._channels.setOpedInChannel(channel,False)
@@ -162,9 +162,9 @@ class irc:
         if self._socket.recv(128): self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
 
-    def quit(self):
+    def quit(self,message="Going, going, gone."):
         print color.b_cyan + 'Overcast IRC Bot - Quitting\n' + color.clear
-        self.sendRaw("QUIT :%s \r\n" % "And the sun shines once again.")
+        self.sendRaw("QUIT :%s \r\n" % message)
 
 
     def authUser(self, username, nick, realname, password):

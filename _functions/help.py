@@ -14,7 +14,7 @@ class function(function_template):
         if len(msgData["message"]) > 1:
             subcommand = msgData["message"][1]
             for func in bot._functions.functionsList:
-                if re.match("^%s.*?$" % subcommand, func.name, re.IGNORECASE):
+                if re.match("^%s.*?$" % re.escape(subcommand), func.name, re.IGNORECASE):
                     bot._irc.sendMSG("Info for function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), msgData["target"])
                     bot._irc.sendMSG("%s" % func.functionString, msgData["target"])
                     bot._irc.sendMSG("Restricted: %s - Type: %s" % (bool(func.restricted), prettyListString(func.type," & ")), msgData["target"])
