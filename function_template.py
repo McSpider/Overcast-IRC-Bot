@@ -27,10 +27,6 @@ class function_template(object):
         self.functionString = "Function template."
         self.helpString = None
 
-
-        # Specify a help string read by the help function.
-        self.helpString = ""
-
         # Specify if the function blocks any other functions that come after itself and are triggerable with the same parameters. (Only used with natural and status functions)
         self.blocking = False
 
@@ -47,15 +43,16 @@ def prettyListString(alist, joiner, cc = None):
     if not cc == None:
         alist = [cc + item + color.irc_clear for item in alist]
 
-    result = ", ".join(alist[:-1])
     if len(alist) > 1:
-        result = result + joiner + alist[-1]
-    return result
+        result = ", ".join(alist[:-1])
+        if len(alist) > 1:
+            result = result + joiner + alist[-1]
+        return result
+    else: return alist[0]
 
 def loadMessagesFile(file):
     lines1 = open(file).read().splitlines()
     lines2 = [line for line in lines1 if not line.startswith('#')]
     lines3 = [line for line in lines2 if line]
 
-    print line
     return lines3

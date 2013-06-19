@@ -10,7 +10,7 @@ class function(function_template):
         self.functionString = "Lart users."
         self.helpString = "Credits to jcp/JZBot for the larts file."
 
-        loadMessagesFile("./_data/larts.txt")
+        self.larts = loadMessagesFile("./_data/larts.txt")
         self.randomness = []
 
     def main(self, bot, msgData, funcType):
