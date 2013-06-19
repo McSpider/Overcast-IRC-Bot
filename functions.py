@@ -62,19 +62,23 @@ class functions:
                 if "command" in func.type:
                     # Check if the message has a trigger and a subcommand
                     if len(msgComponents) >= 4:
-                        messageCommand = msgComponents[3]
-                        messageData["message"] = msgComponents[4:]
-                        # any(re.match("^:%s.*?$" % (trigger), messageCommand, re.IGNORECASE) for trigger in self.bot.triggers)
-                        if (messageRecipient in self.bot.channels) and any(messageCommand.lower() in ":" + trigger.lower() for trigger in self.bot.triggers) and len(msgComponents) >= 5:
-                            messageCommand = msgComponents[4]
+                        # :McSpider!~McSpider@192.65.241.17 PRIVMSG Qwerty1234444 :help ping ping ping
+                        if privateMessage:
+                            messageCommand = string.lstrip(msgComponents[3],":")
+                            messageData["message"] = msgComponents[3:]
+
                             if messageCommand in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
                                     funcExectuted = self.runFunction(func, messageData, "command")
                                     if funcExectuted and func.blocking:
                                         return
-                                else: self.notAllowedMessage(messageData["sender"],messageRecipient)
-                        elif privateMessage:
-                            if messageCommand[1:] in func.commands:
+                                else: self.bot.notAllowedMessage(messageData["sender"],messageRecipient)
+                                return
+
+                        if (messageRecipient in self.bot.channels or privateMessage) and any(msgComponents[3].lower() in ":" + trigger.lower() for trigger in self.bot.triggers) and len(msgComponents) >= 5:
+                            messageCommand = msgComponents[4]
+                            messageData["message"] = msgComponents[4:]
+                            if messageCommand in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
                                     funcExectuted = self.runFunction(func, messageData, "command")
                                     if funcExectuted and func.blocking:
