@@ -53,8 +53,9 @@ def prettyListString(alist, joiner, cc = None):
     return result
 
 def loadMessagesFile(file):
-    lines = open(file).read().splitlines()
-    lines = [line for line in lines if not line.startswith('#')]
-    lines = (line for line in lines if line)
+    lines1 = open(file).read().splitlines()
+    lines2 = [line for line in lines1 if not line.startswith('#')]
+    lines3 = [line for line in lines2 if line]
 
-    return lines
+    print line
+    return lines3

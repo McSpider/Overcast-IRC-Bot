@@ -12,7 +12,7 @@ class function(function_template):
         self.functionString = "Slap a person."
         self.blocking = True
 
-        slaps = loadMessagesFile("./_data/slaps.txt")
+        self.slaps = loadMessagesFile("./_data/slaps.txt")
         self.ouch = ["Ouch!","That hurt!","Oww!","Will you stop that!",">_>"]
         self.randomness = []
 
