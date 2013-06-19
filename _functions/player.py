@@ -15,7 +15,7 @@ class function(function_template):
             player = message[1]
         else:
             bot._irc.sendMSG("No player specified", msgData["target"])
-            return False
+            return True
 
         error = ''
         try: data = urllib.urlopen('http://oc.tc/' + str(player))
@@ -30,19 +30,22 @@ class function(function_template):
                 error = '404 - User not found'
             elif (data.getcode() == int('200')):
                 soup = BeautifulSoup(data)
-                
-                last_seen = string.join(soup.find("span", text=re.compile(".*%s.*" % str(player), re.IGNORECASE)).findParent('h1').contents[3].contents[0].split())
+                if soup.find("h4", text=["Account Suspended"]):
+                    error = 'User Account Suspended'
+                else:
+                    kills = soup.find("small", text=["kills"]).findParent('h2').contents[0].strip('\n')
 
-                kills = soup.find("small", text=["kills"]).findParent('h2').contents[0].strip('\n')
-                deaths = soup.find("small", text=["deaths"]).findParent('h2').contents[0].strip('\n')
-                friends = soup.find("small", text=["friends"]).findParent('h2').contents[0].strip('\n')
-                kd_ratio = soup.find("small", text=["kd ratio"]).findParent('h2').contents[0].strip('\n')
-                kk_ratio = soup.find("small", text=["kk ratio"]).findParent('h2').contents[0].strip('\n')
-                joins = soup.find("small", text=["server joins"]).findParent('h2').contents[0].strip('\n')
-                
-                bot._irc.sendMSG("%s - %s" % (str(player), last_seen), msgData["target"])
-                bot._irc.sendMSG("Kills:%s, Deaths:%s, KD Ratio:%s, KK Ratio:%s" % (kills, deaths, kd_ratio, kk_ratio), msgData["target"])
-                bot._irc.sendMSG("Friends:%s, Joins:%s" % (friends, joins), msgData["target"])
+                    last_seen = string.join(soup.find("span", text=re.compile(".*%s.*" % str(player), re.IGNORECASE)).findParent('h1').contents[3].contents[0].split())
+                    
+                    deaths = soup.find("small", text=["deaths"]).findParent('h2').contents[0].strip('\n')
+                    friends = soup.find("small", text=["friends"]).findParent('h2').contents[0].strip('\n')
+                    kd_ratio = soup.find("small", text=["kd ratio"]).findParent('h2').contents[0].strip('\n')
+                    kk_ratio = soup.find("small", text=["kk ratio"]).findParent('h2').contents[0].strip('\n')
+                    joins = soup.find("small", text=["server joins"]).findParent('h2').contents[0].strip('\n')
+                    
+                    bot._irc.sendMSG("%s - %s" % (str(player), last_seen), msgData["target"])
+                    bot._irc.sendMSG("Kills:%s, Deaths:%s, KD Ratio:%s, KK Ratio:%s" % (kills, deaths, kd_ratio, kk_ratio), msgData["target"])
+                    bot._irc.sendMSG("Friends:%s, Joins:%s" % (friends, joins), msgData["target"])
 
         if error: bot._irc.sendMSG(error, msgData["target"])
         return True
