@@ -35,7 +35,12 @@ class function(function_template):
                 else:
                     kills = soup.find("small", text=["kills"]).findParent('h2').contents[0].strip('\n')
 
-                    last_seen = string.join(soup.find("span", text=re.compile(".*%s.*" % str(player), re.IGNORECASE)).findParent('h1').contents[3].contents[0].split())
+                    last_seen_data = soup.find("span", text=re.compile(".*%s.*" % str(player), re.IGNORECASE)).findParent('h1')
+                    last_seen_server = last_seen_data.find(href="/play").contents[1].contents[0]
+
+                    last_seen = string.join(last_seen_data.contents[3].contents[0].split())
+                    if last_seen == "Online:":
+                        last_seen = last_seen + " " + last_seen_server
                     
                     deaths = soup.find("small", text=["deaths"]).findParent('h2').contents[0].strip('\n')
                     friends = soup.find("small", text=["friends"]).findParent('h2').contents[0].strip('\n')
