@@ -36,9 +36,19 @@ class functions:
         msgSender = string.lstrip(string.split(msgSenderHostmask,"!")[0],":")
 
         # Global same sender message cooldown
-        if msgSender in self.globalCooldown and (not (self.globalCooldown[msgSender] == None or datetime.datetime.now() > self.globalCooldown[msgSender])):
-            print color.b_red + "Ignoring possible flood message" + color.clear
-            return
+        if msgSender in self.globalCooldown and not self.globalCooldown[msgSender] == None:
+            print "Cooldown: " + str(self.globalCooldown[msgSender])
+            if self.globalCooldown[msgSender]["messages"] > 2 and datetime.datetime.now() < self.globalCooldown[msgSender]["cooldown"] + datetime.timedelta(seconds = 5):
+                self.globalCooldown[msgSender]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 5)
+
+            if datetime.datetime.now() < self.globalCooldown[msgSender]["cooldown"]:
+                self.globalCooldown[msgSender]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
+                self.globalCooldown[msgSender]["messages"] += 1
+
+                print color.b_red + "Ignoring possible flood message" + color.clear
+                return
+            else:
+                self.globalCooldown[msgSender]["messages"] = 0
 
         # Check functions
         for func in self.functionsList:
@@ -67,7 +77,7 @@ class functions:
                             messageCommand = string.lstrip(msgComponents[3],":")
                             messageData["message"] = msgComponents[3:]
 
-                            if messageCommand in func.commands:
+                            if messageCommand.lower() in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
                                     funcExectuted = self.runFunction(func, messageData, "command")
                                     if funcExectuted and func.blocking:
@@ -79,7 +89,7 @@ class functions:
                         if (messageRecipient in self.bot.channels or privateMessage) and any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
                             messageCommand = msgComponents[4]
                             messageData["message"] = msgComponents[4:]
-                            if messageCommand in func.commands:
+                            if messageCommand.lower() in func.commands:
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
                                     funcExectuted = self.runFunction(func, messageData, "command")
                                     if funcExectuted and func.blocking:
@@ -105,7 +115,10 @@ class functions:
             print color.blue + "%s function executed:" % type.capitalize() + color.clear + func.name
 
         if functionExecuted:
-            self.globalCooldown[messageData["sender"]] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
+            if not messageData["sender"] in self.globalCooldown:
+                self.globalCooldown[messageData["sender"]] = {"cooldown":None,"messages":0}
+            self.globalCooldown[messageData["sender"]]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
+            self.globalCooldown[messageData["sender"]]["messages"] += 1
             return True
         return False
         # except Exception:
