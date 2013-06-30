@@ -5,6 +5,7 @@ import string, re
 import importlib
 from utils import *
 import datetime
+import traceback
 
 
 class functions:
@@ -85,16 +86,17 @@ class functions:
                                 else: self.bot.notAllowedMessage(messageData["sender"],messageRecipient)
                                 return
 
-                        # msgComponents[3].lower() in ":" + trigger.lower()
-                        if (messageRecipient in self.bot.channels or privateMessage) and any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
-                            messageCommand = msgComponents[4]
-                            messageData["message"] = msgComponents[4:]
-                            if messageCommand.lower() in func.commands:
-                                if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
-                                    funcExectuted = self.runFunction(func, messageData, "command")
-                                    if funcExectuted and func.blocking:
-                                        return
-                                else: self.bot.notAllowedMessage(messageData["sender"],messageRecipient)
+                        if (messageRecipient in self.bot.channels or privateMessage):
+                            triggerMatch = self.checkForTriggerMatch(msgComponents)
+                            if triggerMatch:
+                                messageCommand = triggerMatch[0]
+                                messageData["message"] = triggerMatch[1]
+                                if messageCommand.lower() in func.commands:
+                                    if not func.restricted or (func.restricted and self.bot.isUserAuthed(messageData["sender"],messageData["senderHostmask"])):
+                                        funcExectuted = self.runFunction(func, messageData, "command")
+                                        if funcExectuted and func.blocking:
+                                            return
+                                    else: self.bot.notAllowedMessage(messageData["sender"],messageRecipient)
 
             # Handle status messages
             else:
@@ -105,22 +107,34 @@ class functions:
                         return
 
     def runFunction(self, func, messageData, type):
-        # try:
-        functionExecuted = func.main(self.bot, messageData, type)
-        if functionExecuted and func.blocking:
-            func.runCount = func.runCount + 1
-            print color.blue + "Blocking %s function executed:" % type + color.clear + func.functionString
-        elif functionExecuted:
-            func.runCount = func.runCount + 1
-            print color.blue + "%s function executed:" % type.capitalize() + color.clear + func.name
+        try:
+            functionExecuted = func.main(self.bot, messageData, type)
+            if functionExecuted and func.blocking:
+                func.runCount = func.runCount + 1
+                print color.blue + "Blocking %s function executed: " % type + color.clear + func.functionString
+            elif functionExecuted:
+                func.runCount = func.runCount + 1
+                print color.blue + "%s function executed: " % type.capitalize() + color.clear + func.name
 
-        if functionExecuted:
-            if not messageData["sender"] in self.globalCooldown:
-                self.globalCooldown[messageData["sender"]] = {"cooldown":None,"messages":0}
-            self.globalCooldown[messageData["sender"]]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
-            self.globalCooldown[messageData["sender"]]["messages"] += 1
-            return True
+            if functionExecuted:
+                if not messageData["sender"] in self.globalCooldown:
+                    self.globalCooldown[messageData["sender"]] = {"cooldown":None,"messages":0}
+                self.globalCooldown[messageData["sender"]]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
+                self.globalCooldown[messageData["sender"]]["messages"] += 1
+                return True
+            return False
+        except Exception, e:
+            self.bot._irc.sendMSG("Failed to run function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), self.bot.masterChannel)
+            self.bot._irc.sendMSG(str(e), self.bot.masterChannel)
+            tb = traceback.format_exc()
+            print color.red + tb + color.clear
+
+    def checkForTriggerMatch(self, msgComponents):
+        if any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
+            messageCommand = msgComponents[4]
+            return [messageCommand,msgComponents[4:]]
+        elif len(msgComponents) >= 4:
+            if re.match("^:%s.*?$" % re.escape(self.bot.shortTrigger), msgComponents[3], re.IGNORECASE):
+                messageCommand = string.lstrip(msgComponents[3],":"+ self.bot.shortTrigger)
+                return [messageCommand,msgComponents[3:]]
         return False
-        # except Exception:
-        #         print color.red + "Exception raised!"
-

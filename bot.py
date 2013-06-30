@@ -28,7 +28,8 @@ class bot:
         self.authedHostmasks = ["User@123.145.457.342"]
 
         self.debug = True
-        self.triggers = [self.nick + ":","!"]
+        self.triggers = [self.nick + ":"]
+        self.shortTrigger = "!"
 
 
 
@@ -45,7 +46,7 @@ class bot:
         self._functions.checkForFunction(msgComponents, messageType)
 
     def isUserAuthed(self,user,hostmask):
-        hostmask = string.split(hostmask,"!~")[1]
+        hostmask = string.split(hostmask,"!")[1]
         if (hostmask in self.authedHostmasks):
             return True
 

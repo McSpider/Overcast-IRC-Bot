@@ -8,7 +8,7 @@ class function(function_template):
         self.commands = ["help"]
         self.functionString = "Overcast bot help."
         self.blocking = True
-        self.priority = 2
+        self.priority = 3
 
     def main(self, bot, msgData, funcType):
         if len(msgData["message"]) > 1:
@@ -24,8 +24,8 @@ class function(function_template):
                         bot._irc.sendMSG(func.helpString, msgData["sender"])
                     return True
         else:
-            bot._irc.sendMSG("Trigger the bot with: \"%s\" " % prettyListString(bot.triggers," or ",color.irc_darkgreen), msgData["sender"])
-            
+            bot._irc.sendMSG("Trigger the bot with: \"%s\" Short trigger: \"%s%s%s\"" % (prettyListString(bot.triggers," or ",color.irc_darkgreen), color.irc_darkgreen, bot.shortTrigger, color.irc_clear), msgData["sender"])
+
             functionMsg = []
             for func in bot._functions.functionsList:
                 funcType = ""
