@@ -2,6 +2,7 @@
 import socket, threading
 import string, re
 import datetime
+import select
 
 from utils import *
 from channels import *
@@ -20,6 +21,14 @@ class irc:
 
         self.server = None
         self.serverPort = None
+
+        self.read_active = True
+        self.poll_activity = True
+        self.poll_activity_interval = 60
+        self.activity_timeout_count = 0
+        # Periodically check if there has been any activity in the last X minutes
+        # If there is no activity try to ping ourselves to force some activity.
+        # If there is no response to our ping try again and if it fails assume that the connection is gone. 
 
 
     def connectToServer(self, server, port):
@@ -101,10 +110,11 @@ class irc:
 
 
     def parseRawMessage(self, msg):
+        self.lastActivity = datetime.datetime.now()
         msg = string.rstrip(msg)
         messageType = self.getMessageType(msg)
         messageData = self.getMessageData(msg,messageType)
-        if self._bot.debug: print color.cyan + str(datetime.datetime.now()) + " " + color.green + messageType + " " + color.clear + msg
+        if self._bot.debug: print color.cyan + str(self.lastActivity) + " " + color.green + messageType + " " + color.clear + msg
         else: print msg
         
         msgComponents = string.split(msg)
@@ -144,26 +154,38 @@ class irc:
 
 
     def read(self):
-        readbuffer = ""
-        while 1:
-            readbuffer = readbuffer+self._socket.recv(1024)
-            if not readbuffer: break
+        # Start polling our active state
+        self.lastActivity = datetime.datetime.now()
+        t = threading.Thread(target = self.pollActiveState)
+        startThread(t)
 
-            temp = string.split(readbuffer, "\n")
-            readbuffer = temp.pop( )
-            
-            for msg in temp:
-                msg.strip()
-                t = threading.Thread(target = self.parseRawMessage, args = (msg,))
-                startThread(t)
+        readbuffer = ""
+        # Loop till the readbuffer is nil (i.e. the socket is disconnected)
+        while self.read_active == True:
+            read_status = select.select([self._socket], [], [], 2)
+            if read_status[0]:
+                readbuffer = readbuffer+self._socket.recv(1024)
+                if not readbuffer: break
+
+                temp = string.split(readbuffer, "\n")
+                readbuffer = temp.pop( )
+                
+                for msg in temp:
+                    msg.strip()
+                    t = threading.Thread(target = self.parseRawMessage, args = (msg,))
+                    startThread(t)
+
+        self.poll_activity = False
 
     def disconnect(self):
         # Check if the socket is still receving data, and if it is shut it down
-        if self._socket.recv(128): self._socket.shutdown(socket.SHUT_RDWR)
+        read_status = select.select([self._socket], [], [], 2)
+        if read_status[0]:
+            self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
 
     def quit(self,message="Going, going, gone."):
-        print color.b_cyan + 'Overcast IRC Bot - Quitting\n' + color.clear
+        print color.b_cyan + 'Overcast IRC Bot - Quitting "%s"\n' % message + color.clear
         self.sendRaw("QUIT :%s \r\n" % message)
 
 
@@ -182,28 +204,53 @@ class irc:
 
     def sendRaw(self, message):
         #print color.blue + 'Sending raw string: ' + color.clear + message
+        if len(message) > 512:
+            print color.blue + 'Send Raw Warning: Message to long, trimming to 512 chars. (length %s)' % len(message) + color.clear + message
+            message = message[:510] + "\r\n"
         self._socket.send(message)
 
     def sendMSG(self, message, recipient):
         if recipient == None:
-            print color.red + 'No message recipient specified! ' + color.clear
+            print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
         print color.blue + 'Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         self._socket.send("PRIVMSG %s :%s\r\n" % (recipient, message))
 
     def sendNoticeMSG(self, message, recipient):
         if recipient == None:
-            print color.red + 'No message recipient specified! ' + color.clear
+            print color.red + 'Send Notice Error: No message recipient specified! ' + color.clear
         print color.blue + 'Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         self._socket.send("NOTICE %s :%s\r\n" % (recipient, message))
 
     def sendActionMSG(self, message, recipient):
         if recipient == None:
-            print color.red + 'No message recipient specified! ' + color.clear
+            print color.red + 'Send Action Error: No message recipient specified! ' + color.clear
         print color.blue + 'Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         self._socket.send("PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1))
 
     def sendPingReply(self, server): 
         print color.blue + 'Sending ping reply: ' + color.clear + server
         self.sendRaw("PONG %s\r\n" % server)
+
+    def pollActiveState(self):
+        if self.poll_activity:
+            time_now = datetime.datetime.now()
+            if self._bot.debug: print color.blue + 'Checking for activity timeout, last activity: ' + color.clear + str(self.lastActivity)
+            if self.lastActivity < time_now - datetime.timedelta(minutes = 2):
+                self.activity_timeout_count += 1
+                if self.activity_timeout_count > 1:
+                    print color.red + 'Activity timeout. Disconnecting! ' + color.clear
+                    self.read_active = False
+                    return
+
+                print color.red + 'No activity in last 2 minutes.' + color.clear
+                print color.blue + 'Forcing activity, sending ping to: ' + color.clear + self.nick
+                self.sendRaw("PING %s\r\n" % self.nick)
+            else:
+                self.activity_timeout_count = 0
+
+            threading.Timer(self.poll_activity_interval, self.pollActiveState).start()
+
+
+
 
 
