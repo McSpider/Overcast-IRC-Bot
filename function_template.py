@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 import re
 import string
@@ -28,7 +29,7 @@ class function_template(object):
         self.helpString = None
 
         # Specify if the function blocks any other functions that come after itself and are triggerable with the same parameters. (Only used with natural and status functions)
-        self.blocking = False
+        self.blocking = True
 
         # To be used internally by functions, may be reset to 0 for spam filters, etc. However it is recomended that you use your own variable in that case.
         self.runCount = 0
@@ -56,3 +57,30 @@ def loadMessagesFile(file):
     lines3 = [line for line in lines2 if line]
 
     return lines3
+
+def colorizer(message):
+    message = message.replace("&10", color.irc_cyan)
+    message = message.replace("&11", color.irc_lightcyan)
+    message = message.replace("&12", color.irc_blue)
+    message = message.replace("&13", color.irc_violet)
+    message = message.replace("&14", color.irc_darkgrey)
+    message = message.replace("&15", color.irc_lightgrey)
+
+    message = message.replace("&00", color.irc_white)
+    message = message.replace("&01", color.irc_black)
+    message = message.replace("&02", color.irc_darkblue)
+    message = message.replace("&03", color.irc_darkgreen)
+    message = message.replace("&04", color.irc_red)
+    message = message.replace("&05", color.irc_darkred)
+    message = message.replace("&06", color.irc_darkviolet)
+    message = message.replace("&07", color.irc_orange)
+    message = message.replace("&08", color.irc_yellow)
+    message = message.replace("&09", color.irc_lightgreen)
+
+    message = message.replace("&b", color.irc_bold)
+    message = message.replace("&i", color.irc_italic)
+    message = message.replace("&u", color.irc_underline)
+    message = message.replace("&c", color.irc_clear)
+    return message
+
+

@@ -46,10 +46,19 @@ class function(function_template):
                     kd_ratio = soup.find("small", text=["kd ratio"]).findParent('h2').contents[0].strip('\n')
                     kk_ratio = soup.find("small", text=["kk ratio"]).findParent('h2').contents[0].strip('\n')
                     joins = soup.find("small", text=["server joins"]).findParent('h2').contents[0].strip('\n')
-                    
+
+                    wools = soup.find("small", text=["wools placed"]).findParent('h2').contents[0].strip('\n')
+                    cores = soup.find("small", text=["cores leaked"]).findParent('h2').contents[0].strip('\n')
+                    monuments = soup.find("small", text=["monuments destroyed"]).findParent('h2').contents[0].strip('\n')
+
+                    stats_message = colorizer("Kills:&05 %s&c, Deaths:&05 %s&c, KD Ratio:&05 %s&c, KK Ratio:&05 %s&c" % (kills, deaths, kd_ratio, kk_ratio))
+                    objectives_message = colorizer("Wools Placed:&02 %s&c, Cores Leaked:&02 %s&c, Monuments Destroyed:&02 %s&c" % (wools, cores, monuments))
+                    friends_message = colorizer("Friends:&03 %s&c, Joins:&03 %s&c" % (friends, joins))
+
                     bot._irc.sendMSG("%s - %s" % (str(player), last_seen), msgData["target"])
-                    bot._irc.sendMSG("Kills:%s, Deaths:%s, KD Ratio:%s, KK Ratio:%s" % (kills, deaths, kd_ratio, kk_ratio), msgData["target"])
-                    bot._irc.sendMSG("Friends:%s, Joins:%s" % (friends, joins), msgData["target"])
+                    bot._irc.sendMSG(stats_message, msgData["target"])
+                    bot._irc.sendMSG(objectives_message, msgData["target"])
+                    bot._irc.sendMSG(friends_message, msgData["target"])
 
         if error: bot._irc.sendMSG(error, msgData["target"])
         return True
