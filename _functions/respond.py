@@ -35,4 +35,5 @@ class function(function_template):
         return False
 
     def checkCooldownForID(self, cooldownID):
+        currentTime = datetime.datetime.now()
         return (cooldownID in self.cooldown and ((self.cooldown[cooldownID] == None) or (currentTime > self.cooldown[cooldownID]))) or not cooldownID in self.cooldown
