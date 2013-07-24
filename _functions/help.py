@@ -24,7 +24,7 @@ class function(function_template):
                         bot._irc.sendMSG(func.helpString, msgData["sender"])
                     return True
         else:
-            bot._irc.sendMSG("Trigger the bot with: \"%s\" Short trigger: \"%s%s%s\"" % (prettyListString(bot.triggers," or ",color.irc_darkgreen), color.irc_darkgreen, bot.shortTrigger, color.irc_clear), msgData["sender"])
+            bot._irc.sendMSG("Trigger the bot with: \"%s\" Short trigger: \"%s%s%s\"" % (prettyListString(bot.triggers," or ",color.irc_green), color.irc_green, bot.shortTrigger, color.irc_clear), msgData["sender"])
 
             functionMsg = []
             for func in bot._functions.functionsList:
@@ -39,7 +39,7 @@ class function(function_template):
                 funcType = funcType + "."
                 if func.restricted == True and bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"]):
                     continue
-                functionMsg.append(color.irc_lightgrey + funcType + color.irc_clear + func.name)
+                functionMsg.append(color.irc_white + funcType + color.irc_clear + func.name)
             if len(functionMsg) > 0:
                 bot._irc.sendMSG("Functions you can trigger:", msgData["sender"])
                 bot._irc.sendMSG(", ".join(functionMsg), msgData["sender"])

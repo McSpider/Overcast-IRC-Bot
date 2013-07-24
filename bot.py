@@ -53,7 +53,7 @@ class bot:
         return False
 
     def notAllowedMessage(user,recipient):
-        self._irc.sendMSG("%s%sYou're not allowed to do that %s%s" % (color.irc_red, color.irc_bold, user, color.irc_clear), recipient)
+        self._irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
 
 # Start the bot
 try:

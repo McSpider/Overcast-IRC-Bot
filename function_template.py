@@ -59,27 +59,27 @@ def loadMessagesFile(file):
     return lines3
 
 def colorizer(message):
-    message = message.replace("&10", color.irc_cyan)
-    message = message.replace("&11", color.irc_lightcyan)
-    message = message.replace("&12", color.irc_blue)
-    message = message.replace("&13", color.irc_violet)
-    message = message.replace("&14", color.irc_darkgrey)
-    message = message.replace("&15", color.irc_lightgrey)
-
-    message = message.replace("&00", color.irc_white)
+    message = message.replace("&00", color.irc_boldwhite)
     message = message.replace("&01", color.irc_black)
-    message = message.replace("&02", color.irc_darkblue)
-    message = message.replace("&03", color.irc_darkgreen)
-    message = message.replace("&04", color.irc_red)
-    message = message.replace("&05", color.irc_darkred)
-    message = message.replace("&06", color.irc_darkviolet)
-    message = message.replace("&07", color.irc_orange)
-    message = message.replace("&08", color.irc_yellow)
-    message = message.replace("&09", color.irc_lightgreen)
+    message = message.replace("&02", color.irc_blue)
+    message = message.replace("&03", color.irc_green)
+    message = message.replace("&04", color.irc_boldred)
+    message = message.replace("&05", color.irc_red)
+    message = message.replace("&06", color.irc_violet)
+    message = message.replace("&07", color.irc_yellow)
+    message = message.replace("&08", color.irc_boldyellow)
+    message = message.replace("&09", color.irc_boldgreen)
+    message = message.replace("&10", color.irc_cyan)
+    message = message.replace("&11", color.irc_boldcyan)
+    message = message.replace("&12", color.irc_boldblue)
+    message = message.replace("&13", color.irc_boldviolet)
+    message = message.replace("&14", color.irc_boldblack)
+    message = message.replace("&15", color.irc_white)
 
-    message = message.replace("&b", color.irc_bold)
-    message = message.replace("&i", color.irc_italic)
-    message = message.replace("&u", color.irc_underline)
+
+    # message = message.replace("&b", color.irc_bold)
+    # message = message.replace("&i", color.irc_italic)
+    # message = message.replace("&u", color.irc_underline)
     message = message.replace("&c", color.irc_clear)
     return message
 

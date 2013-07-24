@@ -114,7 +114,7 @@ class irc:
         msg = string.rstrip(msg)
         messageType = self.getMessageType(msg)
         messageData = self.getMessageData(msg,messageType)
-        if self._bot.debug: print color.cyan + str(self.lastActivity) + " " + color.green + messageType + " " + color.clear + msg
+        if self._bot.debug: print color.cyan + str(self.lastActivity) + " " + color.green + messageType + " " + color.clear + repr(msg)
         else: print msg
         
         msgComponents = string.split(msg)
@@ -164,7 +164,7 @@ class irc:
         while self.read_active == True:
             read_status = select.select([self._socket], [], [], 2)
             if read_status[0]:
-                readbuffer = readbuffer+self._socket.recv(1024)
+                readbuffer = readbuffer+self._socket.recv(512)
                 if not readbuffer: break
 
                 temp = string.split(readbuffer, "\n")
@@ -212,19 +212,19 @@ class irc:
     def sendMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+        print color.blue + 'Sending message: ' + color.clear + str(message) + color.blue + ' Recipient: '+ color.clear + str(recipient)
         self._socket.send("PRIVMSG %s :%s\r\n" % (recipient, message))
 
     def sendNoticeMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Notice Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+        print color.blue + 'Sending notice message: ' + color.clear + str(message) + color.blue + ' Recipient: '+ color.clear + str(recipient)
         self._socket.send("NOTICE %s :%s\r\n" % (recipient, message))
 
     def sendActionMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Action Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+        print color.blue + 'Sending action message: ' + color.clear + str(message) + color.blue + ' Recipient: '+ color.clear + str(recipient)
         self._socket.send("PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1))
 
     def sendPingReply(self, server): 
@@ -234,7 +234,7 @@ class irc:
     def pollActiveState(self):
         if self.poll_activity:
             time_now = datetime.datetime.now()
-            if self._bot.debug: print color.blue + 'Checking for activity timeout, last activity: ' + color.clear + str(self.lastActivity)
+            # if self._bot.debug: print color.blue + 'Checking for activity timeout, last activity: ' + color.clear + str(self.lastActivity)
             if self.lastActivity < time_now - datetime.timedelta(minutes = 2):
                 self.activity_timeout_count += 1
                 if self.activity_timeout_count > 1:
