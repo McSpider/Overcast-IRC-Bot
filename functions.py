@@ -65,11 +65,6 @@ class functions:
                 messageData = {"recipient":messageRecipient,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
                 messageData["message"][0] = messageData["message"][0][1:]
 
-                if "natural" in func.type:
-                    funcExectuted = self.runFunction(func, messageData, "natural")
-                    if funcExectuted and func.blocking:
-                        return
-
                 if "command" in func.type:
                     # Check if the message has a trigger and a subcommand
                     if len(msgComponents) >= 4:
@@ -97,6 +92,12 @@ class functions:
                                         if funcExectuted and func.blocking:
                                             return
                                     else: self.bot.notAllowedMessage(messageData["sender"],messageRecipient)
+
+                if "natural" in func.type:
+                    funcExectuted = self.runFunction(func, messageData, "natural")
+                    if funcExectuted and func.blocking:
+                        return
+
 
             # Handle status messages
             else:
