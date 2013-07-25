@@ -14,19 +14,21 @@ class function(function_template):
     def main(self, bot, msgData, funcType):
         if (funcType == "natural"):
             message = string.join(msgData["message"])
-            youtubeMatch = re.findall("www\.youtube\.com/watch\?.*?v=([A-Za-z0-9]+)", message, re.IGNORECASE)
+            youtubeMatch = re.findall("www\.youtube\.com/watch\?.*?v=([A-Za-z0-9-]+)", message, re.IGNORECASE)
+            if not youtubeMatch: youtubeMatch = re.findall("youtu\.be/([A-Za-z0-9-]+)", message, re.IGNORECASE)
             if youtubeMatch:
                 for video_id in youtubeMatch:
                     videoInfo = self.getVideoInfo(video_id)
                     if videoInfo:
-                        bot._irc.sendMSG(colorizer("&15%s&c %s" % (video_id, videoInfo)), msgData["target"])
+                        bot._irc.sendMSG(videoInfo, msgData["target"])
                 return True
             return False
 
         if (funcType == "command"):
             if len(msgData["message"]) > 1:
                 video_url = msgData["message"][1]
-                youtubeMatch = re.search("www\.youtube\.com/watch\?.*?v=([A-Za-z0-9]+)", video_url, re.IGNORECASE)
+                youtubeMatch = re.findall("www\.youtube\.com/watch\?.*?v=([A-Za-z0-9-]+)", message, re.IGNORECASE)
+                if not youtubeMatch: youtubeMatch = re.findall("youtu\.be/([A-Za-z0-9-]+)", message, re.IGNORECASE)
                 if youtubeMatch:
                     video_id = youtubeMatch.group(1)
                     videoInfo = self.getVideoInfo(video_id)
