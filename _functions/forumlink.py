@@ -14,21 +14,22 @@ class function(function_template):
     def main(self, bot, msgData, funcType):
         if (funcType == "natural"):
             message = string.join(msgData["message"])
-            linkMatch = re.findall("(oc\.tc/forums/topics/[A-Za-z0-9-]+[^/])", message, re.IGNORECASE)
-            if not linkMatch: linkMatch = re.findall("(oc\.tc/forums/[A-Za-z0-9-]+[^/])", message, re.IGNORECASE)
+            linkMatch = re.findall("(oc\.tc/forums/topics/[A-Za-z0-9-]+|oc\.tc/forums/[A-Za-z0-9-]+)", message, re.IGNORECASE)
+            print linkMatch
             if linkMatch:
                 for link in linkMatch:
                     r = requests.get("http://" + link)
                     if r.status_code != requests.codes.ok:
-                        return False
+                        continue
 
                     soup = BeautifulSoup(r.text)
                     if soup.find('title'):
                         pageTitle = soup.find('title').get_text().strip()
                         if pageTitle == "Home - Overcast Network Forum":
-                            return False
+                            continue
                         bot._irc.sendMSG(pageTitle, msgData["target"])
-                        return True
+                
+                return True
         
         return False
 
