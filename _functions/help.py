@@ -37,6 +37,8 @@ class function(function_template):
                     if fType == "status":
                         funcType = "S" + funcType
                 funcType = funcType + "."
+                if func.hidden == True:
+                    continue
                 if func.restricted == True and bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"]):
                     continue
                 functionMsg.append(color.irc_white + funcType + color.irc_clear + func.name)

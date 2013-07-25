@@ -34,6 +34,9 @@ class function_template(object):
         # To be used internally by functions, may be reset to 0 for spam filters, etc. However it is recomended that you use your own variable in that case.
         self.runCount = 0
 
+        # Used to hide the function from the help list
+        self.hidden = False
+
 
     def main(self, bot, msgData, funcType):
         irc.sendMSG("Function not setup, still using template.", bot.masterChannel)
