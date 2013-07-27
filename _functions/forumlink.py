@@ -15,7 +15,6 @@ class function(function_template):
         if (funcType == "natural"):
             message = string.join(msgData["message"])
             linkMatch = re.findall("(oc\.tc/forums/topics/[A-Za-z0-9-]+|oc\.tc/forums/[A-Za-z0-9-]+)", message, re.IGNORECASE)
-            print linkMatch
             if linkMatch:
                 for link in linkMatch:
                     r = requests.get("http://" + link)
