@@ -21,19 +21,35 @@ class function(function_template):
         currentTime = datetime.datetime.now()
         cooldownID = msgData["sender"] + message
 
-        if re.match("^(hi|hello|hey) %s.*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE) or re.match("^%s: (hi|hello)$" % re.escape(bot._irc.nick), message, re.IGNORECASE):
-            if self.checkCooldownForID(cooldownID):
+        if re.match("^(hi|hello|hey),? %s.*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE) or re.match("^%s[,:]? (hi|hello)$" % re.escape(bot._irc.nick), message, re.IGNORECASE):
+            if self.checkCooldownForID(cooldownID,1):
                 bot._irc.sendMSG("%s %s" % (random.choice(self.greetings), msgData["sender"]), msgData["target"])
-                self.cooldown[cooldownID] = currentTime + datetime.timedelta(seconds = 30)
+                self.addCooldownForID(cooldownID,1)
                 return True
         if re.match("^.*?how (do you do|are you) %s?" % re.escape(bot._irc.nick), message, re.IGNORECASE):
-            if self.checkCooldownForID(cooldownID):
+            if self.checkCooldownForID(cooldownID,1):
                 bot._irc.sendMSG("I'm good, thanks.", msgData["target"])
-                self.cooldown[cooldownID] = currentTime + datetime.timedelta(seconds = 30)
+                self.addCooldownForID(cooldownID,1)
+                return True
+        if re.match("^\>_\<$", message):
+            if self.checkCooldownForID(cooldownID,2):
+                bot._irc.sendMSG("Ouch!", msgData["target"])
+                self.addCooldownForID(cooldownID,2)
+                return True
+        if re.match("^Ew{3,7}!$", message):
+            if self.checkCooldownForID(cooldownID,3):
+                bot._irc.sendMSG("...", msgData["target"])
+                self.addCooldownForID(cooldownID,3,3600)
                 return True
 
         return False
 
-    def checkCooldownForID(self, cooldownID):
+    def checkCooldownForID(self, cooldownID, messageTypeID):
         currentTime = datetime.datetime.now()
+        cooldownID = cooldownID + str(messageTypeID)
         return (cooldownID in self.cooldown and ((self.cooldown[cooldownID] == None) or (currentTime > self.cooldown[cooldownID]))) or not cooldownID in self.cooldown
+
+    def addCooldownForID(self, cooldownID, messageTypeID, cooldownTime = 60):
+        currentTime = datetime.datetime.now()
+        cooldownID = cooldownID + str(messageTypeID)
+        self.cooldown[cooldownID] = currentTime + datetime.timedelta(seconds = cooldownTime)
