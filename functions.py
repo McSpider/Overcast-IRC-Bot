@@ -14,6 +14,7 @@ class functions:
         self.loadfunctions()
         self.bot = delegate
         self.globalCooldown = {}
+        self.errorTracebacks = []
         pass
 
     def loadfunctions(self):
@@ -125,10 +126,15 @@ class functions:
                 return True
             return False
         except Exception, e:
-            self.bot._irc.sendMSG("Failed to run function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), self.bot.masterChannel)
+            trace = traceback.format_exc()
+            self.errorTracebacks.append(trace)
+            tb_index = len(self.errorTracebacks) - 1
+
+            self.bot._irc.sendMSG("Failed to run function: %s%s%s - Trace index: %i" % (color.irc_blue, func.name, color.irc_clear, tb_index), self.bot.masterChannel)
             self.bot._irc.sendMSG(str(e), self.bot.masterChannel)
-            tb = traceback.format_exc()
-            print color.red + tb + color.clear
+            self.bot._irc.sendMSG("Triggered by '%s'" % string.join(messageData["message"]), self.bot.masterChannel)
+
+            print color.red + trace + color.clear
 
     def checkForTriggerMatch(self, msgComponents):
         if any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
