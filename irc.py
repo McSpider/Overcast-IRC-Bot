@@ -172,6 +172,7 @@ class irc:
                 
                 for msg in temp:
                     msg.strip()
+                    msg.decode('utf-8')
                     t = threading.Thread(target = self.parseRawMessage, args = (msg,))
                     startThread(t)
 
@@ -207,29 +208,38 @@ class irc:
         if len(message) > 512:
             print color.blue + 'Send Raw Warning: Message to long, trimming to 512 chars. (length %s)' % len(message) + color.clear + message
             message = message[:510] + "\r\n"
-        self._socket.send(message)
+        
+        self._socket.send(message.encode('utf-8'))
 
     def sendMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending message: ' + color.clear + str(message) + color.blue + ' Recipient: '+ color.clear + str(recipient)
-        self._socket.send("PRIVMSG %s :%s\r\n" % (recipient, message))
+        print color.blue + 'Sending message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
+        
+        unicode_msg = "PRIVMSG %s :%s\r\n" % (recipient, message)
+        self._socket.send(unicode_msg.encode('utf-8'))
 
     def sendNoticeMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Notice Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending notice message: ' + color.clear + str(message) + color.blue + ' Recipient: '+ color.clear + str(recipient)
-        self._socket.send("NOTICE %s :%s\r\n" % (recipient, message))
+        print color.blue + 'Sending notice message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
+        
+        unicode_msg = "NOTICE %s :%s\r\n" % (recipient, message)
+        self._socket.send(unicode_msg.encode('utf-8'))
 
     def sendActionMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Action Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending action message: ' + color.clear + str(message) + color.blue + ' Recipient: '+ color.clear + str(recipient)
-        self._socket.send("PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1))
+        print color.blue + 'Sending action message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
+        
+        unicode_msg = "PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1)
+        self._socket.send(unicode_msg.encode('utf-8'))
 
     def sendPingReply(self, server): 
         print color.blue + 'Sending ping reply: ' + color.clear + server
-        self.sendRaw("PONG %s\r\n" % server)
+
+        unicode_msg = "PONG %s\r\n" % server
+        self.sendRaw(unicode_msg.encode('utf-8'))
 
     def pollActiveState(self):
         if self.poll_activity:
