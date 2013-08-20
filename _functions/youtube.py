@@ -14,30 +14,35 @@ class function(function_template):
     def main(self, bot, msgData, funcType):
         if (funcType == "natural"):
             message = string.join(msgData["message"])
-            youtubeMatch = re.findall("www\.youtube\.com/watch\?.*?v=([A-Za-z0-9-]+)", message, re.IGNORECASE)
-            if not youtubeMatch: youtubeMatch = re.findall("youtu\.be/([A-Za-z0-9-]+)", message, re.IGNORECASE)
+            youtubeMatch = re.findall("youtube\.com/watch\?.*?v=([A-Za-z0-9-_]+)", message, re.IGNORECASE)
+            if not youtubeMatch: youtubeMatch = re.findall("youtu\.be/([A-Za-z0-9-_]+)", message, re.IGNORECASE)
             if youtubeMatch:
                 for video_id in youtubeMatch:
+                    print "Getting YT Video: " + str(video_id)
                     videoInfo = self.getVideoInfo(video_id)
-                    if videoInfo:
+                    if videoInfo and not videoInfo == 'RequestException':
                         bot._irc.sendMSG(videoInfo, msgData["target"])
                 return True
             return False
 
         if (funcType == "command"):
             if len(msgData["message"]) > 1:
-                video_url = msgData["message"][1]
-                youtubeMatch = re.findall("www\.youtube\.com/watch\?.*?v=([A-Za-z0-9-]+)", message, re.IGNORECASE)
-                if not youtubeMatch: youtubeMatch = re.findall("youtu\.be/([A-Za-z0-9-]+)", message, re.IGNORECASE)
+                message = msgData["message"][1]
+                youtubeMatch = re.findall("youtube\.com/watch\?.*?v=([A-Za-z0-9-_]+)", message, re.IGNORECASE)
+                if not youtubeMatch: youtubeMatch = re.findall("youtu\.be/([A-Za-z0-9-_]+)", message, re.IGNORECASE)
                 if youtubeMatch:
-                    video_id = youtubeMatch.group(1)
-                    videoInfo = self.getVideoInfo(video_id)
-                    if videoInfo == 'InvalidRequestUriException':
-                        bot._irc.sendMSG(colorizer('&04Error:&c Invalid video URL'), msgData["target"])
-                        return True
-                    if videoInfo:
-                        bot._irc.sendMSG(videoInfo, msgData["target"])
-                        return True
+                    for video_id in youtubeMatch:
+                        print "Getting YT Video: " + str(video_id)
+                        videoInfo = self.getVideoInfo(video_id)
+                        if videoInfo == 'APIException':
+                            bot._irc.sendMSG('Error: Failed to query youtube API', msgData["target"])
+                            return True
+                        elif videoInfo == 'RequestException':
+                            bot._irc.sendMSG('Error: Invalid video URL', msgData["target"])
+                            return True
+                        if videoInfo:
+                            bot._irc.sendMSG(videoInfo, msgData["target"])
+                            return True
             else:
                 pass
             return False
@@ -45,10 +50,10 @@ class function(function_template):
     def getVideoInfo(self,video_id):
         r = requests.get("https://gdata.youtube.com/feeds/api/videos/%s?v=2" % video_id)
         if r.status_code != requests.codes.ok:
-            return 'RequestException'
+            return 'APIException'
         youtubeSoup = BeautifulSoup(r.text)
         if youtubeSoup.find(text='InvalidRequestUriException'):
-            return 'InvalidRequestUriException'
+            return 'RequestException'
 
         if youtubeSoup.find('title'):
             youtubeTitle = youtubeSoup.find('title').get_text()
@@ -58,7 +63,7 @@ class function(function_template):
             if youtubeSoup.find('author').find('name'):
                 youtubeAuthor = ' by: ' + youtubeSoup.find('author').find('name').get_text()
             if youtubeSoup.find('yt:rating'):
-                youtubeRating = colorizer(" - Likes:&03 %s&c Dislikes:&04 %s" % (youtubeSoup.find('yt:rating')['numlikes'], youtubeSoup.find('yt:rating')['numdislikes']))
+                youtubeRating = colorizer(" - Likes:&03 %s&c Dislikes:&05 %s" % (youtubeSoup.find('yt:rating')['numlikes'], youtubeSoup.find('yt:rating')['numdislikes']))
             return "%s%s%s" % (youtubeTitle, youtubeAuthor, youtubeRating)
 
         return False
