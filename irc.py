@@ -100,13 +100,20 @@ class irc:
                 hostmask = split[1]
                 username = split[0]
                 print "nickuserhost: " + nick + " " + username + " " + hostmask
+                messageData["nick"] = nick
+                messageData["username"] = username
+                messageData["hostmask"] = hostmask
             else:
                 if type == "MODECHANGE_NOTICE":
                     nick = prefix
                     print "nick: " + nick
+                    messageData["nick"] = nick
                 else:
                     server = prefix
                     print "server: " + server
+                    messageData["server"] = server
+
+        return messageData
 
 
     def parseRawMessage(self, msg):
@@ -150,7 +157,7 @@ class irc:
                 self._channels.setOpedInChannel(channel,False)
 
 
-        self._bot.parseMessage(msgComponents, messageType)
+        self._bot.parseMessage(msgComponents, messageType, messageData)
 
 
     def read(self):
@@ -214,7 +221,7 @@ class irc:
     def sendMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
+        print color.blue + '@ Sending message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
         
         unicode_msg = "PRIVMSG %s :%s\r\n" % (recipient, message)
         self._socket.send(unicode_msg.encode('utf-8'))
@@ -222,7 +229,7 @@ class irc:
     def sendNoticeMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Notice Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending notice message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
+        print color.blue + '@ Sending notice message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
         
         unicode_msg = "NOTICE %s :%s\r\n" % (recipient, message)
         self._socket.send(unicode_msg.encode('utf-8'))
@@ -230,7 +237,7 @@ class irc:
     def sendActionMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Action Error: No message recipient specified! ' + color.clear
-        print color.blue + 'Sending action message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
+        print color.blue + '@ Sending action message: ' + color.clear + unicode(message) + color.blue + ' Recipient: '+ color.clear + unicode(recipient)
         
         unicode_msg = "PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1)
         self._socket.send(unicode_msg.encode('utf-8'))

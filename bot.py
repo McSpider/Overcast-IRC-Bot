@@ -26,6 +26,7 @@ class bot:
         self.masterChannel = "##testchan123"
 
         self.authedHostmasks = ["User@123.145.457.342"]
+        self.blacklistedUsers = {} #{"~McSpider@192.65.241.17":"0"}
 
         self.debug = True
         self.triggers = [self.nick + ":"]
@@ -42,14 +43,32 @@ class bot:
         self._irc.disconnect()
         print color.b_cyan + "\nOvercast IRC Bot - Shutdown, have a nice day. " + color.clear
 
-    def parseMessage(self, msgComponents, messageType):
-        self._functions.checkForFunction(msgComponents, messageType)
+    def parseMessage(self, msgComponents, messageType, messageData):
+        self._functions.checkForFunction(msgComponents, messageType, messageData)
 
     def isUserAuthed(self,user,hostmask):
         hostmask = string.split(hostmask,"!")[1]
         if (hostmask in self.authedHostmasks):
             return True
 
+        return False
+
+    def hostmaskBlacklisted(self,hostmask):
+        for mask in self.blacklistedUsers:
+            if re.match(mask, hostmask, re.IGNORECASE):
+                return True
+        return False
+
+    def addBlacklistedHostmask(self,hostmask):
+        if not hostmask in self.blacklistedUsers:
+            self.blacklistedUsers.append(hostmask)
+            return True
+        return False
+
+    def removeBlacklistedHostmask(self,hostmask):
+        if hostmask in self.blacklistedUsers:
+            self.blacklistedUsers.remove(hostmask)
+            return True
         return False
 
     def notAllowedMessage(user,recipient):

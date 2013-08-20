@@ -2,6 +2,7 @@
 #!/usr/bin/env python
 import re
 import string
+import datetime
 
 import urllib
 from bs4 import BeautifulSoup
@@ -36,6 +37,9 @@ class function_template(object):
 
         # Used to hide the function from the help list
         self.hidden = False
+
+        # Disable a function for specific period of time
+        self.disabled = None #{disabled_by:"",time:""}
 
 
     def main(self, bot, msgData, funcType):
@@ -85,5 +89,26 @@ def colorizer(message):
     # message = message.replace("&u", color.irc_underline)
     message = message.replace("&c", color.irc_clear)
     return message
+
+def parseTimeDelta(input):
+    value = input[1:]
+    if not value.isalnum():
+        return False
+    value = int(value)
+
+    if input.startswith("s"):
+        return datetime.timedelta(seconds = value)
+    elif input.startswith("m"):
+        return datetime.timedelta(minutes = value)
+    elif input.startswith("h"):
+        return datetime.timedelta(hours = value)
+    elif input.startswith("d"):
+        return datetime.timedelta(days = value)
+
+    return False
+
+
+
+
 
 
