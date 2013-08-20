@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from function_template import *
+import requests
 
 
 class function(function_template):
@@ -10,23 +11,15 @@ class function(function_template):
     
     def main(self, bot, msgData, funcType):
         error = ''
-        try: data = urllib.urlopen('http://oc.tc/play')
-        except urllib2.HTTPError, e:
-            error = 'HTTP Error: ' + str(e.code)
-        except urllib2.URLError, e:
-            error = 'URL Error: ' + str(e.reason)
-        except httplib.HTTPException, e:
-            error = 'HTTP Exception'
+        r = requests.get("https://oc.tc/play")
+        if r.status_code != requests.codes.ok:
+            error = 'Request Exception - Code: ' + str(r.status_code)
         else:
-            if (data.getcode() == int('404')):
-                error = '404 - User not found'
-            elif (data.getcode() == int('200')):
-                soup = BeautifulSoup(data)
-                
-                status = soup.find("h3", text=re.compile(".*Players Online.*"))#.contents#[1].strip('\n')
+            soup = BeautifulSoup(r.text)
+            status = soup.find("h3", text=re.compile(".*Players Online.*"))#.contents#[1].strip('\n')
 
-                status = soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
-                bot._irc.sendMSG("%s" % (status), msgData["target"])
+            status = soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
+            bot._irc.sendMSG("%s" % (status), msgData["target"])
 
         if error: bot._irc.sendMSG(error, msgData["target"])
         return True
