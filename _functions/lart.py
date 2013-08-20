@@ -33,7 +33,7 @@ class function(function_template):
 
             if len(msgData["message"]) > 1:
                 argument = msgData["message"][1]
-                if argument == bot._irc.nick:
+                if re.match("^(%s|himself|itself)$" % (bot._irc.nick), argument, re.IGNORECASE):
                     lart = lart.replace("!target!", msgData["sender"])
                 else:
                     lart = lart.replace("!target!", argument)
@@ -45,6 +45,11 @@ class function(function_template):
             bot._irc.sendMSG("Cooldown for lart function exceeded!", msgData["sender"])
         elif self.checkCooldownForID(cooldownID) == self.lartLimit + 2:
             bot._irc.sendMSG("Go away, %s." % msgData["sender"], msgData["target"])
+        elif self.checkCooldownForID(cooldownID) == self.lartLimit + 5:
+            # Abuse of lart command
+            hostmask = string.lstrip(msgData["senderHostmask"],":")
+            bot.addBlacklistedHostmask(hostmask)
+            bot._irc.sendMSG("Auto blacklisting hostmask: %s" % hostmask, bot.masterChannel)
 
         self.addCooldownForID(cooldownID)
         return True
