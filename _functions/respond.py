@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from function_template import *
-import datetime  
 import random
 
 
@@ -9,7 +8,7 @@ class function(function_template):
         function_template.__init__(self)
         self.type = ["natural"]
         self.priority = 100
-        self.functionString = "I'm alive!"
+        self.functionString = "I'm alive! (Well as alive as I'll ever be...)"
         self.blocking = True
 
         self.greetings = ["Hello","Hi","Heyo"]
@@ -41,6 +40,18 @@ class function(function_template):
                 bot._irc.sendMSG("...", msgData["target"])
                 self.addCooldownForID(cooldownID,3,3600)
                 return True
+        match = re.match("^WTF[^!]*?(!+)$", message)
+        if match:
+            if self.checkCooldownForID(cooldownID,3):
+                count = len(match.group(1))
+                expression = None
+                if count > 3: expression = 'Large WTF!'
+                if count > 5: expression = 'Huge WTF!'
+                if count > 7: expression = 'Giga WTF!'
+                if expression:
+                    bot._irc.sendMSG(expression, msgData["target"])
+                    self.addCooldownForID(cooldownID,3,300)
+                    return True
 
         return False
 
