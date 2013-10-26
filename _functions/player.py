@@ -34,11 +34,14 @@ class function(function_template):
             elif soup.find("small", text=["server joins"]):
                 kills = soup.find("small", text=["kills"]).findParent('h2').contents[0].strip('\n')
 
+                last_seen = "- Last seen unavailable"
                 last_seen_data = soup.find("span", text=re.compile(".*%s.*" % str(player), re.IGNORECASE)).findParent('h1')
-                last_seen = string.join(last_seen_data.contents[3].contents[0].split())
-                if last_seen == "Online:":
-                    last_seen_server = last_seen_data.find(href="/play").contents[1].contents[0]
-                    last_seen = last_seen + " " + last_seen_server
+                if not len(last_seen_data.contents) < 5:
+                    last_seen = string.join(last_seen_data.contents[3].contents[0].split())
+                    if last_seen == "Online:":
+                        last_seen_server = last_seen_data.find(href="/play").contents[1].contents[0]
+                        last_seen = last_seen + " " + last_seen_server
+                    last_seen = "- " + last_seen
                 
                 deaths = soup.find("small", text=["deaths"]).findParent('h2').contents[0].strip('\n')
                 friends = soup.find("small", text=["friends"]).findParent('h2').contents[0].strip('\n')
@@ -54,7 +57,7 @@ class function(function_template):
                 objectives_message = colorizer("Wools Placed:&02 %s&c, Cores Leaked:&02 %s&c, Monuments Destroyed:&02 %s&c" % (wools, cores, monuments))
                 friends_message = colorizer("Friends:&03 %s&c, Joins:&03 %s&c" % (friends, joins))
 
-                bot._irc.sendMSG("%s - %s" % (str(player), last_seen), msgData["target"])
+                bot._irc.sendMSG("%s %s" % (str(player), last_seen), msgData["target"])
                 bot._irc.sendMSG(stats_message, msgData["target"])
                 bot._irc.sendMSG(objectives_message, msgData["target"])
                 bot._irc.sendMSG(friends_message, msgData["target"])
