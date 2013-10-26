@@ -80,10 +80,6 @@ class functions:
                 msgData = {"recipient":messageRecipient,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
                 msgData["message"][0] = msgData["message"][0][1:]
 
-                if disabled:
-                    self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
-                    continue
-
                 if "command" in func.type:
                     # Check if the message has a trigger and a subcommand
                     if len(msgComponents) >= 4:
@@ -93,6 +89,9 @@ class functions:
                             msgData["message"] = msgComponents[3:]
 
                             if messageCommand.lower() in func.commands:
+                                # if disabled:
+                                #     self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
+                                #     continue
                                 if not func.restricted or (func.restricted and self.bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
                                     funcExectuted = self.runFunction(func, msgData, "command")
                                     if funcExectuted and func.blocking:
@@ -106,6 +105,9 @@ class functions:
                                 messageCommand = triggerMatch[0]
                                 msgData["message"] = triggerMatch[1]
                                 if messageCommand.lower() in func.commands:
+                                    # if disabled:
+                                    #     self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
+                                    #     continue
                                     if not func.restricted or (func.restricted and self.bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
                                         funcExectuted = self.runFunction(func, msgData, "command")
                                         if funcExectuted and func.blocking:
@@ -120,11 +122,11 @@ class functions:
 
             # Handle status messages
             else:
-                if disabled:
-                    self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self.bot.masterChannel)
-                    continue
                 msgData = {"recipient":None,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":None, "senderHostmask":None, "messageType":messageType}
                 if "status" in func.type:
+                    # if disabled:
+                    #     self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self.bot.masterChannel)
+                    #     continue
                     funcExectuted = self.runFunction(func, msgData, "status")
                     if funcExectuted and func.blocking:
                         return
