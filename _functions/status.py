@@ -16,9 +16,12 @@ class function(function_template):
             error = 'oc.tc - &05' + str(r.status_code) + "&c"
         else:
             soup = BeautifulSoup(r.text)
-            status = soup.find("h3", text=re.compile(".*Players Online.*"))#.contents#[1].strip('\n')
+            players_online = soup.find(text=re.compile(".*Players Online.*")).findParent('h3').find_all('small')[0].string.replace('\n','')
+            print repr(players_online)
 
             status = soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
+            if len(players_online) > 0:
+                status = status + " - Online Players: " + players_online
             bot._irc.sendMSG("oc.tc: %s" % (status), msgData["target"])
             
         r = requests.get("http://status.mojang.com/check")
