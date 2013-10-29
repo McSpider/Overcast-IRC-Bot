@@ -21,6 +21,7 @@ class function(function_template):
 
 
             titles = []
+            match = False
             for key, value in link_matchers.iteritems():
                 linkMatch = re.findall(value, message, re.IGNORECASE)
 
@@ -32,12 +33,10 @@ class function(function_template):
 
                         soup = BeautifulSoup(r.text)
                         if soup.find('title'):
+                            match = True
                             pageTitle = soup.find('title').get_text().strip()
 
-                            try:
-                                pageTitle = pageTitle.encode('utf-8')
-                            except UnicodeEncodeError:
-                                print color.red + 'Unicode Error: Unable to encode string! ' + color.clear
+                            pageTitle = encode_unicode(pageTitle)
 
                             # Ignore oc.tc 404 pages
                             if key == "Overcast":
@@ -49,7 +48,7 @@ class function(function_template):
                                 titles.append(pageTitle)
                                 bot._irc.sendMSG(pageTitle, msgData["target"])
                     
-            return True
+            return match
        
         return False
 

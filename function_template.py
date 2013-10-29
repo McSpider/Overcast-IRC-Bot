@@ -107,7 +107,14 @@ def parseTimeDelta(input):
 
     return False
 
+def encode_unicode(input):
+    try:
+        input = input.encode('utf-8')
+    except UnicodeEncodeError:
+        print color.red + 'Unicode Error: Unable to encode string!' + color.clear
+        irc.sendMSG("Unicode Error: Unable to encode string!", bot.masterChannel)
 
+    return input;
 
 
 
