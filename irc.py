@@ -102,7 +102,6 @@ class irc:
                 split = string.split(split[1],"@")
                 hostmask = split[1]
                 username = split[0]
-                print "nickuserhost: " + nick + " " + username + " " + hostmask
                 messageData["nick"] = nick
                 messageData["username"] = username
                 messageData["hostmask"] = hostmask
@@ -149,7 +148,6 @@ class irc:
                 for channel, data in self._bot.channels.items():
                     self._channels.join(channel)
 
-            #:McSpider!~McSpider@192.65.241.17 MODE ##mcspider +o Overcast1
             if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
                 channel = msgComponents[2]
                 print color.b_purple + "Oped in channel: " + color.clear + channel
@@ -181,11 +179,6 @@ class irc:
                 readbuffer = temp.pop( )
                 
                 for msg in temp:
-                    try:
-                        msg.decode('utf-8')
-                    except UnicodeDecodeError:
-                        print color.red + 'Unicode Error: Unable to decode message! ' + color.clear
-
                     msg.strip()
                     t = threading.Thread(target = self.parseRawMessage, args = (msg,))
                     startThread(t)
