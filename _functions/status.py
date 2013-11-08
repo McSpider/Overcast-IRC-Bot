@@ -39,7 +39,7 @@ class function(function_template):
                     if x[key] == "green":
                         result = result + keyvalue + " &03OK&c, "
                     else:
-                        result = result + keyvalue + " &050&c, "
+                        result = result + keyvalue + " &05Offline&c, "
 
             result = colorizer(result.rstrip(', '))
             bot._irc.sendMSG("%s" % (result), msgData["target"])
