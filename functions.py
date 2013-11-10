@@ -48,12 +48,12 @@ class functions:
 
         # Global same sender message cooldown
         if msgSender in self.globalCooldown and not self.globalCooldown[msgSender] == None:
-            print "Cooldown: " + str(self.globalCooldown[msgSender])
-            if self.globalCooldown[msgSender]["messages"] > 2 and datetime.datetime.now() < self.globalCooldown[msgSender]["cooldown"] + datetime.timedelta(seconds = 5):
-                self.globalCooldown[msgSender]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 5)
+            current_time = datetime.datetime.now()
+            if self.globalCooldown[msgSender]["messages"] < 2 and current_time < self.globalCooldown[msgSender]["cooldown"] + datetime.timedelta(seconds = 5):
+                self.globalCooldown[msgSender]["cooldown"] = current_time + datetime.timedelta(seconds = 5)
 
-            if datetime.datetime.now() < self.globalCooldown[msgSender]["cooldown"]:
-                self.globalCooldown[msgSender]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
+            if current_time < self.globalCooldown[msgSender]["cooldown"]:
+                self.globalCooldown[msgSender]["cooldown"] = current_time + datetime.timedelta(seconds = 1)
                 self.globalCooldown[msgSender]["messages"] += 1
 
                 print color.b_red + "Ignoring possible flood message" + color.clear
@@ -144,7 +144,7 @@ class functions:
             if functionExecuted:
                 if not messageData["sender"] in self.globalCooldown:
                     self.globalCooldown[messageData["sender"]] = {"cooldown":None,"messages":0}
-                self.globalCooldown[messageData["sender"]]["cooldown"] = datetime.datetime.now() + datetime.timedelta(seconds = 1)
+                self.globalCooldown[messageData["sender"]]["cooldown"] = datetime.datetime.now()
                 self.globalCooldown[messageData["sender"]]["messages"] += 1
                 return True
             return False
@@ -172,11 +172,11 @@ class functions:
     def isFunctionDisabled(self, function):
         if function.disabled == None:
             return False
-        currentTime = datetime.datetime.now()
-        if currentTime > function.disabled["time"]:
+        current_time = datetime.datetime.now()
+        if current_time > function.disabled["time"]:
             function.disabled = None
             return False
-        return [function.disabled["disabled_by"], currentTime - function.disabled["time"]]
+        return [function.disabled["disabled_by"], current_time - function.disabled["time"]]
 
     def disableFunction(self, function_name, time_delta, disabled_by):
         function = self.getFunctionWithName(function_name)
