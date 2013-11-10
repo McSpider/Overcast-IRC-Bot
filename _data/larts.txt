@@ -40,8 +40,8 @@ duct-tapes !target! to the floor and drools on him
 dumps 42 tons of dirt, manure, and fish heads on !target!
 eats !target! and falls over dead
 eats !target!'s liver with some fava beans and a nice chianti
-#endeavors, unsuccessfully, to convince !target! that the world really is round
-enrolls !target! in Visual Basic 101
+#endeavours, unsuccessfully, to convince !target! that the world really is round
+enrols !target! in Visual Basic 101
 executes killall -HUP !target!
 executes killall -KILL !target!
 executes killall -TERM !target!
@@ -60,7 +60,7 @@ gets a hotmail account and SPAMs !target!
 gives !target! a "free" copy of Windows and then charges double for "Upgrades"
 gives !target! a good seeing to
 gives !target! an extra strength ACME sleeping pill, sending !target! to sleep for 150 years, and awakening to seven strange dwarfs and a large apple
-grabs a large, mis-shapened log, with squirrels, and beats !target! until only the nuts remain ... which the squirrels run off with
+grabs a large, mis-shaped log, with squirrels, and beats !target! until only the nuts remain ... which the squirrels run off with
 hauls !target! up by the scruff of the neck and spanks him until he waddles
 hereby declares !target! a troll
 hits !target! with an anvil and laughs with a contralto voice ... Haha Ha HA Ha
@@ -144,7 +144,7 @@ throws a dishwasher at !target! to unload
 tries to shut !target! up
 turns !target! into a lifesized tux doll
 vaporizes !target! with a flamethrower
-wallops !target! with a main rotation server that needs rehubbing. It won't take long.
+wallops !target! with a main rotation server that needs re-hubbing. It won't take long.
 # This one is credit McSpider from #jzbot
 watches a 2000ft anaconda slowly wrap and squeeze !target!
 watches a brainsucker carefully placed on !target!'s head wither up and die from starvation
@@ -152,8 +152,10 @@ whacks !target! over the head with the omnipresent frying pan
 whacks !target! upside the head
 whacks !target! with a giant beaver's tail
 whacks !target! with the cluebat
-whips out a hot clue gun and makes sure that !target! is stuck to the floor
+whips out a hot glue gun and makes sure that !target! is stuck to the floor
 whips out a shotgun, trudges over to !target!, and goes postal
 whips out a sword and chops !target! in half
 whips out his power stapler and staples !target!'s foot to the floor
 whips !target! with a wet and grimy noodle just because
+breaks !target!'s computer with a dwarven axe
+puts !target! on the "random" list
