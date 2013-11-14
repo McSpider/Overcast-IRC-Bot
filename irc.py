@@ -68,7 +68,9 @@ class irc:
             return "PART_NOTICE"
         elif re.match("^:.*? MODE .* .*$", msg):
             return "MODECHANGE_NOTICE"
-        elif re.match("^:.*? QUIT :.*$", msg):
+        elif re.match("^:.*? 353 .*? :.*$", msg):
+            return "NAMES_LIST"
+        elif re.match("^:\S*? QUIT :.*$", msg):
             return "QUIT_NOTICE"
         elif re.match("^PING.*?$", msg):
             return "PING"
@@ -192,8 +194,9 @@ class irc:
         #     self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
 
-    def quit(self,message="Going, going, gone."):
+    def quit(self,message="And the sun shines once again."):
         print color.b_cyan + 'Overcast IRC Bot - Quitting "%s"\n' % message.decode('utf-8') + color.clear
+        self._bot.intentionalDisconnect = True;
         self.sendRaw("QUIT :%s \r\n" % message)
 
 
@@ -247,6 +250,14 @@ class irc:
 
         message = "PONG %s\r\n" % server
         self.sendRaw(message)
+
+
+    # def voiceUser(self, username, channel, auto_voice):
+
+
+    # def userIsVoiced(self, username, channel, recursive):
+
+
 
     def pollActiveState(self):
         if self.poll_activity:

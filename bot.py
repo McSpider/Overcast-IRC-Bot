@@ -22,15 +22,20 @@ class bot:
         self.server = config.get('irc_config', 'server')
         self.serverPort = config.getint('irc_config', 'server_port')
 
-        self.channels = {"##testchan123":{"connected":False,"chanFlags":[],"botFlags":[]}}
-        self.masterChannel = "##testchan123"
+        self.channels = {"##mcspider":{"connected":False,"chanFlags":[],"botFlags":[]}}
+        self.masterChannel = "##mcspider"
 
-        self.authedHostmasks = ["User@123.145.457.342"]
-        self.blacklistedUsers = {} #{"~McSpider@192.65.241.17":"0"}
+        self.authedHostmasks = ["~McSpider@192.65.241.17","~plastix@192.65.241.17"]
+        self.blacklistedUsers = [] #{} #{"~McSpider@192.65.241.17":"0"}
+
 
         self.debug = True
         self.triggers = [self.nick + ":"]
         self.shortTrigger = "!"
+
+        self.intentionalDisconnect = False;
+        self.reconnectCount = 0;
+        self.reconnectLimit = 5;
 
 
 
@@ -41,7 +46,12 @@ class bot:
 
         self._irc.read()
         self._irc.disconnect()
-        print color.b_cyan + "\nOvercast IRC Bot - Shutdown, have a nice day. " + color.clear
+
+        if not self.intentionalDisconnect and self.reconnectCount < self.reconnectLimit:
+            self.reconnectCount += 1
+            return 1
+
+        return 0
 
     def parseMessage(self, msgComponents, messageType, messageData):
         self._functions.checkForFunction(msgComponents, messageType, messageData)
@@ -74,9 +84,29 @@ class bot:
     def notAllowedMessage(user,recipient):
         self._irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
 
+
+    def isConnectedToChannel(self,channel):
+        pass
+
+    def isOpedInChannel(self,channel):
+        if "+o" in self.channels[channel]["botFlags"]:
+            return True
+        return False
+
+    def setOpedInChannel(self,channel,bool):
+        if bool: self.channels[channel]["botFlags"].append("+o")
+        else: self.channels[channel]["botFlags"].remove("+o")
+
 # Start the bot
 try:
-    _bot = bot()
-    _bot.main()
+    status = -1
+    while status != 0:
+        if status == 1:
+            print color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected, reconnecting. " + color.clear
+        _bot = bot()
+        status = _bot.main()
+    
+    print color.b_cyan + "\nOvercast IRC Bot - Shutdown, have a nice day. " + color.clear
+
 except KeyboardInterrupt:
     pass
