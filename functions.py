@@ -32,7 +32,7 @@ class functions:
                 instance.name = functionName + ext
                 self.functionsList.append(instance)
 
-            self.functionsList = sorted(self.functionsList, key=lambda function: function.priority, reverse=True)
+            self.functionsList = sorted(self.functionsList, key=lambda function: function.priority, reverse=False)
 
     def checkForFunction(self, msgComponents, messageType, messageData):
         privateMessage = (messageType == "QUERY_MSG") or (messageType == "ACTION_MSG")
