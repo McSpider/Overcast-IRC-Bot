@@ -39,7 +39,7 @@ class functions:
         publicMessage = (messageType == "CHANNEL_MSG") or (messageType == "CHANNEL_ACTION_MSG")
 
         msgSenderHostmask = msgComponents[0]
-        msgSender = string.lstrip(string.split(msgSenderHostmask,"!")[0],":")
+        msgSender = (string.split(msgSenderHostmask,"!")[0])[1:]
 
         if publicMessage or privateMessage:
             fullHostmask = messageData["username"] + "@" + messageData["hostmask"]
@@ -66,54 +66,38 @@ class functions:
             else:
                 self.globalCooldown[msgSender]["messages"] = 0
 
-        # Check functions
-        for func in self.functionsList:
-            disabled = self.isFunctionDisabled(func)
 
-            # Handle channel messages
-            if (publicMessage or privateMessage) and len(msgComponents) >= 3:
-                messageRecipient = msgComponents[2]
+        # Handle channel messages
+        if (publicMessage or privateMessage) and len(msgComponents) >= 3:
+            messageRecipient = msgComponents[2]
 
-                target = messageRecipient
-                if privateMessage:
-                    target = msgSender
+            target = messageRecipient
+            if privateMessage:
+                target = msgSender
 
-                msgData = {"recipient":messageRecipient,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
-                msgData["message"][0] = msgData["message"][0][1:]
-
-                if "command" in func.type:
-                    # Check if the message has a trigger and a subcommand
-                    if len(msgComponents) >= 4:
-                        # :McSpider!~McSpider@192.65.241.17 PRIVMSG Qwerty1234444 :help ping ping ping
-                        if privateMessage:
-                            messageCommand = string.lstrip(msgComponents[3],":")
-                            msgData["message"] = msgComponents[3:]
-
-                            if messageCommand.lower() in func.commands:
-                                # if disabled:
-                                #     self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
-                                #     continue
+            msgData = {"recipient":messageRecipient,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
+            if msgData["message"][0].startswith(":"):
+                msgData["message"][0] = (msgData["message"][0])[1:]
+            # Check functions
+            for func in self.functionsList:
+                disabled = self.isFunctionDisabled(func)
+                if "command" in func.type and len(msgComponents) >= 4:
+                    # Check if the message has a trigger and a subcommand or just a subcommand if its a PM
+                    if (self._irc._channels.isConnectedTo(messageRecipient) or privateMessage):
+                        triggerMatch = self.checkForTriggerMatch(msgComponents,privateMessage)
+                        if triggerMatch:
+                            messageCommand = triggerMatch[0].lower()
+                            msgData["message"] = triggerMatch[1]
+                            msgData["command"] = messageCommand
+                            if messageCommand in func.commands:
+                                if disabled:
+                                    self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self._bot.masterChannel)
+                                    continue
                                 if not func.restricted or (func.restricted and self._bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
                                     funcExectuted = self.runFunction(func, msgData, "command")
                                     if funcExectuted and func.blocking:
                                         return
                                 else: self._bot.notAllowedMessage(msgData["sender"],messageRecipient)
-                                return
-
-                        if (self._irc._channels.isConnectedTo(messageRecipient) or privateMessage):
-                            triggerMatch = self.checkForTriggerMatch(msgComponents)
-                            if triggerMatch:
-                                messageCommand = triggerMatch[0]
-                                msgData["message"] = triggerMatch[1]
-                                if messageCommand.lower() in func.commands:
-                                    # if disabled:
-                                    #     self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
-                                    #     continue
-                                    if not func.restricted or (func.restricted and self._bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
-                                        funcExectuted = self.runFunction(func, msgData, "command")
-                                        if funcExectuted and func.blocking:
-                                            return
-                                    else: self._bot.notAllowedMessage(msgData["sender"],messageRecipient)
 
                 if "natural" in func.type:
                     funcExectuted = self.runFunction(func, msgData, "natural")
@@ -121,13 +105,16 @@ class functions:
                         return
 
 
-            # Handle status messages
-            else:
-                msgData = {"recipient":None,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":None, "senderHostmask":None, "messageType":messageType}
+        # Handle status messages
+        else:
+            msgData = {"recipient":None,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":None, "senderHostmask":None, "messageType":messageType}
+            # Check functions
+            for func in self.functionsList:
+                disabled = self.isFunctionDisabled(func)
                 if "status" in func.type:
-                    # if disabled:
-                    #     self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self._bot.masterChannel)
-                    #     continue
+                    if disabled:
+                        self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self._bot.masterChannel)
+                        continue
                     funcExectuted = self.runFunction(func, msgData, "status")
                     if funcExectuted and func.blocking:
                         return
@@ -160,14 +147,22 @@ class functions:
 
             print color.red + trace + color.clear
 
-    def checkForTriggerMatch(self, msgComponents):
+    def checkForTriggerMatch(self, msgComponents, privateMessage):
+        message = msgComponents[3:]
+        if message[0].startswith(":"):
+            message[0] = (message[0])[1:]
+
         if any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self._bot.triggers) and len(msgComponents) >= 5:
             messageCommand = msgComponents[4]
             return [messageCommand,msgComponents[4:]]
         elif len(msgComponents) >= 4:
             if re.match("^:%s.*?$" % re.escape(self._bot.shortTrigger), msgComponents[3], re.IGNORECASE):
-                messageCommand = string.lstrip(msgComponents[3],":"+ self._bot.shortTrigger)
-                return [messageCommand,msgComponents[3:]]
+                # Strip the short trigger
+                messageCommand = (message[0])[len(self._bot.shortTrigger):]
+                message[0] = messageCommand
+                return [messageCommand,message]
+        if privateMessage: # Private messages don't require a trigger
+            return [message[0],message]
         return False
 
     def isFunctionDisabled(self, function):
