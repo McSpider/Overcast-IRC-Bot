@@ -9,41 +9,65 @@ from utils import *
 class channels:
     def __init__(self, delegate):
         self._irc = delegate
+        self.list = {}
+
+        # self.list[##test] = (channel(self,"##test"))
         pass
 
-    def isConnectedToChannel(self,channel):
-        pass
+    def join(self, chan):
+        print color.blue + 'Joining channel: ' + color.clear + chan
+        self.list[chan] = channel(chan)
+        self._irc.sendRaw(('JOIN :%s\r\n' % chan))
 
-    def isOpedInChannel(self,channel):
-        if "+o" in self._irc._bot.channels[channel]["botFlags"]:
+    def part(self, chan):
+        print color.blue + 'Parting channel: ' + color.clear + chan
+        self._irc.sendRaw(('PART %s \r\n' % chan))
+
+    def joinedTo(self, chan):
+        print color.blue + 'Joined channel: ' + color.clear + chan
+        if self.list.has_key(chan):
+            self.list[chan].connected = True
+
+    def partedFrom(self, chan):
+        print color.blue + 'Parted channel: ' + color.clear + chan
+        if self.list.has_key(chan):
+            self.list[chan].connected = False
+
+    def kickedFrom(self, chan):
+        print color.red + 'Kicked from channel: ' + color.clear + chan
+        if self.list.has_key(chan):
+            self.list[chan].connected = False
+
+    def isConnectedTo(self,chan):
+        if self.list.has_key(chan):
+            return self.list[chan].connected
+        return False
+
+    def hasFlagIn(self,flag,chan):
+        if self.list.has_key(chan):
+            if flag in self.list[chan].my_flags:
+                return True
+        return False
+
+    def flagIn(self,flag,chan,bool):
+        if self.list.has_key(chan):
+            if bool:
+                self.list[chan].my_flags.append(flag)
+            else:
+                self.list[chan].my_flags.remove(flag)
             return True
         return False
 
 
-    def setOpedInChannel(self,channel,bool):
-        if bool: self._irc._bot.channels[channel]["botFlags"].append("+o")
-        else: self._irc._bot.channels[channel]["botFlags"].remove("+o")
-
-    def join(self, channel):
-        print color.blue + 'Joining channel: ' + color.clear + channel
-        self._irc._bot.channels[channel] = {"connected":False,"chanFlags":[],"botFlags":[]}
-        self._irc.sendRaw(('JOIN :%s\r\n' % channel))
-
-    def part(self, channel):
-        print color.blue + 'Parting channel: ' + color.clear + channel
-        self._irc.sendRaw(('PART %s \r\n' % channel))
-
-    def joinedTo(self, channel):
-        print color.blue + 'Joined channel: ' + color.clear + channel
-        self._irc._bot.channels[channel]["connected"] = True
+class channel:
+    def __init__(self, name):
+        self.name = name;
+        self.users = {} # {"username":["flag","+v"]}
+        self.flags = [] # ["flag","+v"]
+        self.my_flags = []
+        self.connected = False
         pass
 
-    def partedFrom(self, channel):
-        print color.blue + 'Parted channel: ' + color.clear + channel
-        self._irc._bot.channels[channel]["connected"] = False
-        pass
 
-    def kickedFrom(self, channel):
-        print color.red + 'Kicked from channel: ' + color.clear + channel
-        self._irc._bot.channels[channel]["connected"] = False
-        pass
+
+

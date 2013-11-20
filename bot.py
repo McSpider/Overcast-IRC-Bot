@@ -9,7 +9,7 @@ import ConfigParser
 class bot:
     def __init__(self):
         self._irc = irc(self)
-        self._functions = functions(self)
+        self._functions = functions(self,self._irc)
 
         config = ConfigParser.RawConfigParser()
         config.read('config.cfg')
@@ -22,21 +22,24 @@ class bot:
         self.server = config.get('irc_config', 'server')
         self.serverPort = config.getint('irc_config', 'server_port')
 
-        self.channels = {"##mcspider":{"connected":False,"chanFlags":[],"botFlags":[]}}
-        self.masterChannel = "##mcspider"
+        self.autojoin_channels = filter(None, config.get('bot_config', 'autojoin_channels').split(','))
+        self.masterChannel = config.get('bot_config', 'master_channel')
 
         self.authedHostmasks = ["~McSpider@192.65.241.17","~plastix@192.65.241.17"]
         self.blacklistedUsers = [] #{} #{"~McSpider@192.65.241.17":"0"}
 
 
-        self.debug = True
-        self.triggers = [self.nick + ":"]
-        self.shortTrigger = "!"
+        self.debug = config.get('bot_config', 'debug')
+        self.triggers = filter(None, [self.nick + ":"] + config.get('bot_config', 'triggers').split(','))
+        self.shortTrigger = config.get('bot_config', 'short_trigger')
 
         self.intentionalDisconnect = False;
         self.reconnectCount = 0;
         self.reconnectLimit = 5;
 
+        if self.debug:
+            attrs = vars(self)
+            print ', '.join("%s: %s" % item for item in attrs.items())
 
 
     def main(self):
@@ -84,18 +87,6 @@ class bot:
     def notAllowedMessage(user,recipient):
         self._irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
 
-
-    def isConnectedToChannel(self,channel):
-        pass
-
-    def isOpedInChannel(self,channel):
-        if "+o" in self.channels[channel]["botFlags"]:
-            return True
-        return False
-
-    def setOpedInChannel(self,channel,bool):
-        if bool: self.channels[channel]["botFlags"].append("+o")
-        else: self.channels[channel]["botFlags"].remove("+o")
 
 # Start the bot
 try:

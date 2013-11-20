@@ -147,17 +147,26 @@ class irc:
         if (messageType == "MODECHANGE_NOTICE"):
             if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
                 print color.b_cyan + "Overcast IRC Bot - Connected to irc server\n" + color.clear
-                for channel, data in self._bot.channels.items():
+                for channel in self._bot.autojoin_channels:
                     self._channels.join(channel)
 
             if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
                 channel = msgComponents[2]
                 print color.b_purple + "Oped in channel: " + color.clear + channel
-                self._channels.setOpedInChannel(channel,True)
+                self._channels.flagIn("o",channel,True)
             if re.match("^:.*? MODE .* \-o %s$" % re.escape(self.nick), msg):
                 channel = msgComponents[2]
                 print color.b_purple + "De-Oped in channel: " + color.clear + channel
-                self._channels.setOpedInChannel(channel,False)
+                self._channels.flagIn("o",channel,False)
+
+            if re.match("^:.*? MODE .* \+v %s$" % re.escape(self.nick), msg):
+                channel = msgComponents[2]
+                print color.b_purple + "Voiced in channel: " + color.clear + channel
+                self._channels.flagIn("v",channel,True)
+            if re.match("^:.*? MODE .* \-v %s$" % re.escape(self.nick), msg):
+                channel = msgComponents[2]
+                print color.b_purple + "De-Voiced in channel: " + color.clear + channel
+                self._channels.flagIn("v",channel,False)
 
 
         self._bot.parseMessage(msgComponents, messageType, messageData)

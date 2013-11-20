@@ -9,10 +9,11 @@ import traceback
 
 
 class functions:
-    def __init__(self, delegate):
+    def __init__(self, delegate, irc):
         self.functionsList = []
         self.loadfunctions()
-        self.bot = delegate
+        self._bot = delegate
+        self._irc = irc
         self.globalCooldown = {}
         self.errorTracebacks = []
         pass
@@ -42,7 +43,7 @@ class functions:
 
         if publicMessage or privateMessage:
             fullHostmask = messageData["username"] + "@" + messageData["hostmask"]
-            if self.bot.hostmaskBlacklisted(fullHostmask):
+            if self._bot.hostmaskBlacklisted(fullHostmask):
                 print color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + string.split(msgSenderHostmask,"!")[1]
                 return
 
@@ -59,8 +60,8 @@ class functions:
                 print color.b_red + "Ignoring possible flood message" + color.clear
                 if self.globalCooldown[msgSender]["messages"] > 10:
                     fullHostmask = messageData["username"] + "@" + messageData["hostmask"]
-                    self.bot.addBlacklistedHostmask(fullHostmask)
-                    self.bot._irc.sendMSG("Auto blacklisting hostmask: %s" % fullHostmask, self.bot.masterChannel)
+                    self._bot.addBlacklistedHostmask(fullHostmask)
+                    self._irc.sendMSG("Auto blacklisting hostmask: %s" % fullHostmask, self._bot.masterChannel)
                 return
             else:
                 self.globalCooldown[msgSender]["messages"] = 0
@@ -90,29 +91,29 @@ class functions:
 
                             if messageCommand.lower() in func.commands:
                                 # if disabled:
-                                #     self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
+                                #     self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
                                 #     continue
-                                if not func.restricted or (func.restricted and self.bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
+                                if not func.restricted or (func.restricted and self._bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
                                     funcExectuted = self.runFunction(func, msgData, "command")
                                     if funcExectuted and func.blocking:
                                         return
-                                else: self.bot.notAllowedMessage(msgData["sender"],messageRecipient)
+                                else: self._bot.notAllowedMessage(msgData["sender"],messageRecipient)
                                 return
 
-                        if (messageRecipient in self.bot.channels or privateMessage):
+                        if (self._irc._channels.isConnectedTo(messageRecipient) or privateMessage):
                             triggerMatch = self.checkForTriggerMatch(msgComponents)
                             if triggerMatch:
                                 messageCommand = triggerMatch[0]
                                 msgData["message"] = triggerMatch[1]
                                 if messageCommand.lower() in func.commands:
                                     # if disabled:
-                                    #     self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
+                                    #     self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), messageRecipient)
                                     #     continue
-                                    if not func.restricted or (func.restricted and self.bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
+                                    if not func.restricted or (func.restricted and self._bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
                                         funcExectuted = self.runFunction(func, msgData, "command")
                                         if funcExectuted and func.blocking:
                                             return
-                                    else: self.bot.notAllowedMessage(msgData["sender"],messageRecipient)
+                                    else: self._bot.notAllowedMessage(msgData["sender"],messageRecipient)
 
                 if "natural" in func.type:
                     funcExectuted = self.runFunction(func, msgData, "natural")
@@ -125,7 +126,7 @@ class functions:
                 msgData = {"recipient":None,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":None, "senderHostmask":None, "messageType":messageType}
                 if "status" in func.type:
                     # if disabled:
-                    #     self.bot._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self.bot.masterChannel)
+                    #     self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self._bot.masterChannel)
                     #     continue
                     funcExectuted = self.runFunction(func, msgData, "status")
                     if funcExectuted and func.blocking:
@@ -133,7 +134,7 @@ class functions:
 
     def runFunction(self, func, messageData, type):
         try:
-            functionExecuted = func.main(self.bot, messageData, type)
+            functionExecuted = func.main(self._bot, messageData, type)
             if functionExecuted and func.blocking:
                 func.runCount = func.runCount + 1
                 print color.blue + "Blocking %s function executed: " % type + color.clear + func.functionString
@@ -153,19 +154,19 @@ class functions:
             self.errorTracebacks.append(trace)
             tb_index = len(self.errorTracebacks) - 1
 
-            self.bot._irc.sendMSG("Failed to run function: %s%s%s - Trace index: %i" % (color.irc_blue, func.name, color.irc_clear, tb_index), self.bot.masterChannel)
-            self.bot._irc.sendMSG(str(e), self.bot.masterChannel)
-            self.bot._irc.sendMSG("Triggered by '%s'" % string.join(messageData["message"]), self.bot.masterChannel)
+            self._irc.sendMSG("Failed to run function: %s%s%s - Trace index: %i" % (color.irc_blue, func.name, color.irc_clear, tb_index), self._bot.masterChannel)
+            self._irc.sendMSG(str(e), self._bot.masterChannel)
+            self._irc.sendMSG("Triggered by '%s'" % string.join(messageData["message"]), self._bot.masterChannel)
 
             print color.red + trace + color.clear
 
     def checkForTriggerMatch(self, msgComponents):
-        if any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self.bot.triggers) and len(msgComponents) >= 5:
+        if any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self._bot.triggers) and len(msgComponents) >= 5:
             messageCommand = msgComponents[4]
             return [messageCommand,msgComponents[4:]]
         elif len(msgComponents) >= 4:
-            if re.match("^:%s.*?$" % re.escape(self.bot.shortTrigger), msgComponents[3], re.IGNORECASE):
-                messageCommand = string.lstrip(msgComponents[3],":"+ self.bot.shortTrigger)
+            if re.match("^:%s.*?$" % re.escape(self._bot.shortTrigger), msgComponents[3], re.IGNORECASE):
+                messageCommand = string.lstrip(msgComponents[3],":"+ self._bot.shortTrigger)
                 return [messageCommand,msgComponents[3:]]
         return False
 
