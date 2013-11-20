@@ -181,7 +181,13 @@ class irc:
         readbuffer = ""
         # Loop till the readbuffer is nil (i.e. the socket is disconnected)
         while self.read_active == True:
-            read_status = select.select([self._socket], [], [], 2)
+            try:
+                read_status = select.select([self._socket], [], [], 2)
+            except Exception, e:
+                trace = traceback.format_exc()
+                print color.red + trace + color.clear
+                break;
+
             if read_status[0]:
                 readbuffer = readbuffer+self._socket.recv(512)
                 if not readbuffer: break
