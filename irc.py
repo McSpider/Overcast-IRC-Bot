@@ -110,11 +110,9 @@ class irc:
             else:
                 if type == "MODECHANGE_NOTICE":
                     nick = prefix
-                    print "nick: " + nick
                     messageData["nick"] = nick
                 else:
                     server = prefix
-                    print "server: " + server
                     messageData["server"] = server
 
         return messageData

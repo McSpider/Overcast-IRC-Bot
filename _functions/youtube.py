@@ -43,8 +43,6 @@ class function(function_template):
                         if videoInfo:
                             bot._irc.sendMSG(videoInfo, msgData["target"])
                             return True
-            else:
-                pass
             return False
 
     def getVideoInfo(self,video_id):
