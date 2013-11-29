@@ -12,7 +12,7 @@ class function(function_template):
     def main(self, bot, msgData, funcType):
         if len(msgData["message"]) > 1:
             traceIndex = int(msgData["message"][1])
-            tracebacks = bot._functions.errorTracebacks
+            tracebacks = bot._functions.error_tracebacks
             if len(tracebacks) > traceIndex:
                 trace = tracebacks[traceIndex]
                 trace = trace.splitlines()

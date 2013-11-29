@@ -59,16 +59,17 @@ class bot:
     def parseMessage(self, msgComponents, messageType, messageData):
         self._functions.checkForFunction(msgComponents, messageType, messageData)
 
-    def isUserAuthed(self,user,hostmask):
+    def isUserAuthed(self,hostmask):
+        print hostmask
         hostmask = string.split(hostmask,"!")[1]
-        if (hostmask in self.authedHostmasks):
-            return True
-
+        for mask in self.authedHostmasks:
+            if re.match(".*%s.*" % mask, hostmask, re.IGNORECASE):
+                return True
         return False
 
     def hostmaskBlacklisted(self,hostmask):
         for mask in self.blacklistedUsers:
-            if re.match(mask, hostmask, re.IGNORECASE):
+            if re.match(".*%s.*" % mask, hostmask, re.IGNORECASE):
                 return True
         return False
 

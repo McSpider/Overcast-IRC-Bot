@@ -10,15 +10,15 @@ import traceback
 
 class functions:
     def __init__(self, delegate, irc):
-        self.functionsList = []
-        self.loadfunctions()
+        self.functions_list = []
+        self.loadFunctions()
         self._bot = delegate
         self._irc = irc
-        self.globalCooldown = {}
-        self.errorTracebacks = []
+        self.global_cooldown = {}
+        self.error_tracebacks = []
         pass
 
-    def loadfunctions(self):
+    def loadFunctions(self):
         lib_path = os.path.abspath('./_functions/')
         sys.path.append(lib_path)
 
@@ -30,61 +30,71 @@ class functions:
                 command_func = getattr(function, "function")
                 instance = command_func()
                 instance.name = functionName + ext
-                self.functionsList.append(instance)
+                self.functions_list.append(instance)
 
-            self.functionsList = sorted(self.functionsList, key=lambda function: function.priority, reverse=False)
+            self.functions_list = sorted(self.functions_list, key=lambda function: function.priority, reverse=False)
 
-    def checkForFunction(self, msgComponents, messageType, messageData):
-        privateMessage = (messageType == "QUERY_MSG") or (messageType == "ACTION_MSG")
-        publicMessage = (messageType == "CHANNEL_MSG") or (messageType == "CHANNEL_ACTION_MSG")
+    def checkForFunction(self, msg_components, message_type, message_data):
+        private_message = (message_type == "QUERY_MSG") or (message_type == "ACTION_MSG")
+        public_message = (message_type == "CHANNEL_MSG") or (message_type == "CHANNEL_ACTION_MSG")
 
-        msgSenderHostmask = msgComponents[0]
-        msgSender = (string.split(msgSenderHostmask,"!")[0])[1:]
+        # Sender status/permissions check
+        if public_message or private_message:
+            sender_full_hostmask = message_data["nick"] + "!" + message_data["username"] + "@" + message_data["hostmask"]
+            if self._bot.hostmaskBlacklisted(sender_full_hostmask):
+                if not self._bot.isUserAuthed(sender_full_hostmask):
+                    print color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + sender_full_hostmask
+                    return
+                else: self._irc.sendMSG("Authed user blacklist match: %s (Verify?)" % sender_full_hostmask, self._bot.masterChannel)
 
-        if publicMessage or privateMessage:
-            fullHostmask = messageData["username"] + "@" + messageData["hostmask"]
-            if self._bot.hostmaskBlacklisted(fullHostmask):
-                print color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + string.split(msgSenderHostmask,"!")[1]
-                return
+            # Global same sender message cooldown
+            msg_sender = message_data["nick"]
+            if msg_sender in self.global_cooldown and not self.global_cooldown[msg_sender] == None:
+                current_time = datetime.datetime.now()
+                cooldown = self.global_cooldown[msg_sender]["cooldown"]
+                print self.global_cooldown[msg_sender]
 
-        # Global same sender message cooldown
-        if msgSender in self.globalCooldown and not self.globalCooldown[msgSender] == None:
-            current_time = datetime.datetime.now()
-            if self.globalCooldown[msgSender]["messages"] < 2 and current_time < self.globalCooldown[msgSender]["cooldown"] + datetime.timedelta(seconds = 5):
-                self.globalCooldown[msgSender]["cooldown"] = current_time + datetime.timedelta(seconds = 5)
+                # Auto blacklist user if they have sent 10 triggering messages in the last 5 seconds
+                if self.global_cooldown[msg_sender]["messages"] > 10 and current_time < cooldown + datetime.timedelta(seconds = 5):
+                    if not self._bot.hostmaskBlacklisted(sender_full_hostmask):
+                        sender_full_hostmask = message_data["username"] + "@" + message_data["hostmask"]
+                        self._bot.addBlacklistedHostmask(sender_full_hostmask)
+                        self._irc.sendMSG("Auto blacklisting hostmask: %s" % sender_full_hostmask, self._bot.masterChannel)
+                        return
 
-            if current_time < self.globalCooldown[msgSender]["cooldown"]:
-                self.globalCooldown[msgSender]["cooldown"] = current_time + datetime.timedelta(seconds = 1)
-                self.globalCooldown[msgSender]["messages"] += 1
-
-                print color.b_red + "Ignoring possible flood message" + color.clear
-                if self.globalCooldown[msgSender]["messages"] > 10:
-                    fullHostmask = messageData["username"] + "@" + messageData["hostmask"]
-                    self._bot.addBlacklistedHostmask(fullHostmask)
-                    self._irc.sendMSG("Auto blacklisting hostmask: %s" % fullHostmask, self._bot.masterChannel)
-                return
-            else:
-                self.globalCooldown[msgSender]["messages"] = 0
+                # Ignore user if they have sent 2 or more messages in the last 2 seconds, or 3 messages in 3 seconds
+                if self.global_cooldown[msg_sender]["messages"] >= 2 and current_time < cooldown + datetime.timedelta(seconds = 2) or \
+                 self.global_cooldown[msg_sender]["messages"] >= 3 and current_time < cooldown + datetime.timedelta(seconds = 3):
+                    self.global_cooldown[msg_sender]["cooldown"] = current_time
+                    self.global_cooldown[msg_sender]["messages"] += 1
+                    print color.b_red + "Ignoring possible flood message from: " + color.clear + msg_sender
+                    return
+                
+                # Reset cooldown if the user hasn't sent a message in the last 5 seconds
+                if current_time > cooldown + datetime.timedelta(seconds = 5):
+                    self.global_cooldown[msg_sender]["messages"] = 0
 
 
         # Handle channel messages
-        if (publicMessage or privateMessage) and len(msgComponents) >= 3:
-            messageRecipient = msgComponents[2]
+        if (public_message or private_message) and len(msg_components) >= 3:
+            sender_full_hostmask = message_data["nick"] + "!" + message_data["username"] + "@" + message_data["hostmask"]
+            message_recipient = msg_components[2]
+            msg_sender = message_data["nick"]
 
-            target = messageRecipient
-            if privateMessage:
-                target = msgSender
+            target = message_recipient
+            if private_message:
+                target = msg_sender
 
-            msgData = {"recipient":messageRecipient,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":msgSender, "senderHostmask":msgSenderHostmask, "messageType":messageType, "target":target}
+            msgData = {"recipient":message_recipient,"message":msg_components[3:], "rawMessage":" ".join(msg_components), "sender":msg_sender, "senderHostmask":message_data["hostmask"], "message_type":message_type, "target":target}
             if msgData["message"][0].startswith(":"):
                 msgData["message"][0] = (msgData["message"][0])[1:]
             # Check functions
-            for func in self.functionsList:
+            for func in self.functions_list:
                 disabled = self.isFunctionDisabled(func)
-                if "command" in func.type and len(msgComponents) >= 4:
+                if "command" in func.type and len(msg_components) >= 4:
                     # Check if the message has a trigger and a subcommand or just a subcommand if its a PM
-                    if (self._irc._channels.isConnectedTo(messageRecipient) or privateMessage):
-                        triggerMatch = self.checkForTriggerMatch(msgComponents,privateMessage)
+                    if (self._irc._channels.isConnectedTo(message_recipient) or private_message):
+                        triggerMatch = self.checkForTriggerMatch(msg_components,private_message)
                         if triggerMatch:
                             messageCommand = triggerMatch[0].lower()
                             msgData["message"] = triggerMatch[1]
@@ -93,11 +103,11 @@ class functions:
                                 if disabled:
                                     self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self._bot.masterChannel)
                                     continue
-                                if not func.restricted or (func.restricted and self._bot.isUserAuthed(msgData["sender"],msgData["senderHostmask"])):
+                                if not func.restricted or (func.restricted and self._bot.isUserAuthed(sender_full_hostmask)):
                                     funcExectuted = self.runFunction(func, msgData, "command")
                                     if funcExectuted and func.blocking:
                                         return
-                                else: self._bot.notAllowedMessage(msgData["sender"],messageRecipient)
+                                else: self._bot.notAllowedMessage(msgData["sender"],message_recipient)
 
                 if "natural" in func.type:
                     funcExectuted = self.runFunction(func, msgData, "natural")
@@ -107,9 +117,9 @@ class functions:
 
         # Handle status messages
         else:
-            msgData = {"recipient":None,"message":msgComponents[3:], "rawMessage":" ".join(msgComponents), "sender":None, "senderHostmask":None, "messageType":messageType}
+            msgData = {"recipient":None,"message":msg_components[3:], "rawMessage":" ".join(msg_components), "sender":None, "senderHostmask":None, "message_type":message_type}
             # Check functions
-            for func in self.functionsList:
+            for func in self.functions_list:
                 disabled = self.isFunctionDisabled(func)
                 if "status" in func.type:
                     if disabled:
@@ -119,9 +129,9 @@ class functions:
                     if funcExectuted and func.blocking:
                         return
 
-    def runFunction(self, func, messageData, type):
+    def runFunction(self, func, message_data, type):
         try:
-            functionExecuted = func.main(self._bot, messageData, type)
+            functionExecuted = func.main(self._bot, message_data, type)
             if functionExecuted and func.blocking:
                 func.runCount = func.runCount + 1
                 print color.blue + "Blocking %s function executed: " % type + color.clear + func.functionString
@@ -130,38 +140,38 @@ class functions:
                 print color.blue + "%s function executed: " % type.capitalize() + color.clear + func.name
 
             if functionExecuted:
-                if not messageData["sender"] in self.globalCooldown:
-                    self.globalCooldown[messageData["sender"]] = {"cooldown":None,"messages":0}
-                self.globalCooldown[messageData["sender"]]["cooldown"] = datetime.datetime.now()
-                self.globalCooldown[messageData["sender"]]["messages"] += 1
+                if not message_data["sender"] in self.global_cooldown:
+                    self.global_cooldown[message_data["sender"]] = {"cooldown":None,"messages":0}
+                self.global_cooldown[message_data["sender"]]["cooldown"] = datetime.datetime.now()
+                self.global_cooldown[message_data["sender"]]["messages"] += 1
                 return True
             return False
         except Exception, e:
             trace = traceback.format_exc()
-            self.errorTracebacks.append(trace)
-            tb_index = len(self.errorTracebacks) - 1
+            self.error_tracebacks.append(trace)
+            tb_index = len(self.error_tracebacks) - 1
 
             self._irc.sendMSG("Failed to run function: %s%s%s - Trace index: %i" % (color.irc_blue, func.name, color.irc_clear, tb_index), self._bot.masterChannel)
             self._irc.sendMSG(str(e), self._bot.masterChannel)
-            self._irc.sendMSG("Triggered by '%s'" % string.join(messageData["message"]), self._bot.masterChannel)
+            self._irc.sendMSG("Triggered by '%s'" % string.join(message_data["message"]), self._bot.masterChannel)
 
             print color.red + trace + color.clear
 
-    def checkForTriggerMatch(self, msgComponents, privateMessage):
-        message = msgComponents[3:]
+    def checkForTriggerMatch(self, msg_components, private_message):
+        message = msg_components[3:]
         if message[0].startswith(":"):
             message[0] = (message[0])[1:]
 
-        if any(re.match("^:%s$" % re.escape(trigger), msgComponents[3], re.IGNORECASE) for trigger in self._bot.triggers) and len(msgComponents) >= 5:
-            messageCommand = msgComponents[4]
-            return [messageCommand,msgComponents[4:]]
-        elif len(msgComponents) >= 4:
-            if re.match("^:%s.*?$" % re.escape(self._bot.shortTrigger), msgComponents[3], re.IGNORECASE):
+        if any(re.match("^:%s$" % re.escape(trigger), msg_components[3], re.IGNORECASE) for trigger in self._bot.triggers) and len(msg_components) >= 5:
+            messageCommand = msg_components[4]
+            return [messageCommand,msg_components[4:]]
+        elif len(msg_components) >= 4:
+            if re.match("^:%s.*?$" % re.escape(self._bot.shortTrigger), msg_components[3], re.IGNORECASE):
                 # Strip the short trigger
                 messageCommand = (message[0])[len(self._bot.shortTrigger):]
                 message[0] = messageCommand
                 return [messageCommand,message]
-        if privateMessage: # Private messages don't require a trigger
+        if private_message: # Private messages don't require a trigger
             return [message[0],message]
         return False
 
@@ -191,7 +201,7 @@ class functions:
         return False
 
     def getFunctionWithName(self, function_name):
-        for function in self.functionsList:
+        for function in self.functions_list:
             if function.name == function_name:
                 return function
         return False

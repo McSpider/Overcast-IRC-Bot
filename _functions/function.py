@@ -36,8 +36,8 @@ class function(function_template):
 
             if msgData["message"][1] == "list":
                 bot._irc.sendMSG("Functions:", msgData["sender"])
-                for function in bot._functions.functionsList:
-                    bot._irc.sendMSG("%s %s" % (function.name, function.disabled) , msgData["sender"])
+                for function in bot._functions.functions_list:
+                    bot._irc.sendMSG("%s%s" % (function.name, (" Disabled" if function.disabled else "")) , msgData["sender"])
         else:
             bot._irc.sendMSG(self.helpString, msgData["sender"])
 
