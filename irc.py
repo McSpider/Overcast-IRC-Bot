@@ -187,7 +187,7 @@ class irc:
                 break;
 
             if read_status[0]:
-                readbuffer = readbuffer+self._socket.recv(512)
+                readbuffer = readbuffer+self._socket.recv(512).decode('utf-8')
                 if not readbuffer: break
 
                 temp = string.split(readbuffer, "\n")
@@ -232,12 +232,12 @@ class irc:
             print color.blue + 'Send Raw Warning: Message to long, trimming to 512 chars. (length %s)' % len(message) + color.clear + message
             message = message[:510] + "\r\n"
         
-        self._socket.send(message)
+        self._socket.send(message.encode('utf-8'))
 
     def sendMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
-        print color.blue + '@ Sending message: ' + color.clear + message.decode('utf-8') + color.blue + ' Recipient: '+ color.clear + recipient.decode('utf-8')
+        print color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient.decode('utf-8')
         
         message = "PRIVMSG %s :%s\r\n" % (recipient, message)
         self.sendRaw(message)
