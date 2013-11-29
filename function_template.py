@@ -47,7 +47,10 @@ class function_template(object):
         return True
 
 
-def prettyListString(alist, joiner, cc = None):
+def prettyListString(alist, joiner, cc = None, capitalize = False):
+    if capitalize:
+        alist = [item.capitalize() for item in alist]
+
     if not cc == None:
         alist = [cc + item + color.irc_clear for item in alist]
 
@@ -116,6 +119,18 @@ def encode_unicode(input):
 
     return input;
 
+def strFromBool(bool):
+    return "Yes" if bool else "No"
 
+def pageFromList(self, page_list, page_index, page_size):
+    start = (page_index - 1) * page_size
+    end = start + page_size
 
+    if start >= len(page_list):
+        start = 0
+        end = page_size
+    elif end >= len(page_list):
+        end = len(page_list)
+
+    return page_list[start:end]
 
