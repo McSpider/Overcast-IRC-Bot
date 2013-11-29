@@ -13,7 +13,7 @@ class function(function_template):
     def main(self, bot, msgData, funcType):
         if len(msgData["message"]) > 1:
             subcommand = msgData["message"][1]
-            for func in bot._functions.functionsList:
+            for func in bot._functions.functions_list:
                 if re.match("^%s.*?$" % re.escape(subcommand), func.name, re.IGNORECASE):
                     bot._irc.sendMSG("Info for function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), msgData["sender"])
                     bot._irc.sendMSG("%s" % func.functionString, msgData["sender"])
@@ -27,7 +27,7 @@ class function(function_template):
             bot._irc.sendMSG("Trigger the bot with: \"%s\" Short trigger: \"%s%s%s\"" % (prettyListString(bot.triggers," or ",color.irc_green), color.irc_green, bot.shortTrigger, color.irc_clear), msgData["sender"])
 
             functionMsg = []
-            for func in bot._functions.functionsList:
+            for func in bot._functions.functions_list:
                 funcType = ""
                 for fType in func.type:
                     if fType == "command":
