@@ -26,6 +26,12 @@ class irc:
         self.poll_activity = True
         self.poll_activity_interval = 60
         self.activity_timeout_count = 0
+
+        self._messages_queue = []
+        self._messages_queue_send_interval = 1
+        # start polling the messages queue
+        t = threading.Thread(target = self._sendQueuedMessages)
+        startThread(t)
         # Periodically check if there has been any activity in the last X minutes
         # If there is no activity try to ping ourselves to force some activity.
         # If there is no response to our ping try again and if it fails assume that the connection is gone. 
@@ -236,7 +242,7 @@ class irc:
             print color.blue + 'Send Raw Warning: Message to long, trimming to 512 chars. (length %s)' % len(message) + color.clear + message
             message = message[:510] + "\r\n"
         
-        self._socket.send(message.encode('utf-8'))
+        self._messages_queue.append(message)
 
     def sendMSG(self, message, recipient):
         if recipient == None:
@@ -295,6 +301,12 @@ class irc:
 
             threading.Timer(self.poll_activity_interval, self.pollActiveState).start()
 
+    def _sendQueuedMessages(self):
+        if len(self._messages_queue) > 0:
+            message = self._messages_queue.pop(0)
+            self._socket.send(message.encode('utf-8'))
+
+        threading.Timer(self._messages_queue_send_interval, self._sendQueuedMessages).start()
 
 
 
