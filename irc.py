@@ -20,7 +20,7 @@ class irc:
         self.realname = None
 
         self.server = None
-        self.serverPort = None
+        self.server_port = None
 
         self.read_active = True
         self.poll_activity = True
@@ -34,7 +34,7 @@ class irc:
     def connectToServer(self, server, port):
         print color.b_blue + 'Connecting to server: ' + color.clear + server + ':' + str(port)
         self.server = server
-        self.serverPort = port
+        self.server_port = port
         self._socket.connect((server, port))
     
 
@@ -81,16 +81,16 @@ class irc:
         if not msg:
             return
 
-        msgComponents = string.split(msg)
-        messageData = {}
+        msg_components = string.split(msg)
+        message_data = {}
 
         prefix = None
         command = None
         params = None
 
 
-        if msgComponents[0][0] == ":":
-            prefix = msgComponents[0]
+        if msg_components[0][0] == ":":
+            prefix = msg_components[0]
 
             username = None
             nick = None
@@ -106,77 +106,77 @@ class irc:
                 split = string.split(split[1],"@")
                 hostmask = split[1]
                 username = split[0]
-                messageData["nick"] = nick
-                messageData["username"] = username
-                messageData["hostmask"] = hostmask
+                message_data["nick"] = nick
+                message_data["username"] = username
+                message_data["hostmask"] = hostmask
             else:
                 if type == "MODECHANGE_NOTICE":
                     nick = prefix
                     if nick.startswith(":"):
                         nick = nick[1:]
-                    messageData["nick"] = nick
+                    message_data["nick"] = nick
                 else:
                     server = prefix
-                    messageData["server"] = server
+                    message_data["server"] = server
 
-        return messageData
+        return message_data
 
 
     def parseRawMessage(self, msg):
-        self.lastActivity = datetime.datetime.now()
+        self.last_activity = datetime.datetime.now()
         msg = string.rstrip(msg)
-        messageType = self.getMessageType(msg)
-        messageData = self.getMessageData(msg,messageType)
-        if self._bot.debug: print color.cyan + str(self.lastActivity) + " " + color.green + messageType + " " + color.clear + repr(msg)
+        message_type = self.getMessageType(msg)
+        message_data = self.getMessageData(msg,message_type)
+        if self._bot.debug: print color.cyan + str(self.last_activity) + " " + color.green + message_type + " " + color.clear + repr(msg)
         else: print msg
         
-        msgComponents = string.split(msg)
+        msg_components = string.split(msg)
         if re.match("^.* 366 %s .*:End of /NAMES.*$" % re.escape(self.nick), msg):
-            self._channels.joinedTo(msgComponents[3])
-        if (messageType == "KICK_NOTICE") and re.match("^.*%s.*$" % re.escape(self.nick), msg):
-            self._channels.kickedFrom(msgComponents[2])
+            self._channels.joinedTo(msg_components[3])
+        if (message_type == "KICK_NOTICE") and re.match("^.*%s.*$" % re.escape(self.nick), msg):
+            self._channels.kickedFrom(msg_components[2])
 
-        if (messageType == "PING") and len(msgComponents) == 2:
-            self.sendPingReply(msgComponents[1])
+        if (message_type == "PING") and len(msg_components) == 2:
+            self.sendPingReply(msg_components[1])
 
-        if messageType == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
+        if message_type == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
             print color.purple + 'Identify request recieved.' + color.clear
             if self.password:
                 self.sendMSG(('identify %s' % self.password),'NickServ')
             else:
                 print color.red + 'No password specified, not authenticating.' + color.clear
 
-        if (messageType == "MODECHANGE_NOTICE"):
+        if (message_type == "MODECHANGE_NOTICE"):
             if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
                 print color.b_cyan + "Overcast IRC Bot - Connected to irc server\n" + color.clear
                 for channel in self._bot.autojoin_channels:
                     self._channels.join(channel)
 
             if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
-                channel = msgComponents[2]
+                channel = msg_components[2]
                 print color.b_purple + "Oped in channel: " + color.clear + channel
                 self._channels.flagIn("o",channel,True)
             if re.match("^:.*? MODE .* \-o %s$" % re.escape(self.nick), msg):
-                channel = msgComponents[2]
+                channel = msg_components[2]
                 print color.b_purple + "De-Oped in channel: " + color.clear + channel
                 self._channels.flagIn("o",channel,False)
 
             if re.match("^:.*? MODE .* \+v %s$" % re.escape(self.nick), msg):
-                channel = msgComponents[2]
+                channel = msg_components[2]
                 print color.b_purple + "Voiced in channel: " + color.clear + channel
                 self._channels.flagIn("v",channel,True)
             if re.match("^:.*? MODE .* \-v %s$" % re.escape(self.nick), msg):
-                channel = msgComponents[2]
+                channel = msg_components[2]
                 print color.b_purple + "De-Voiced in channel: " + color.clear + channel
                 self._channels.flagIn("v",channel,False)
 
 
-        self._bot.parseMessage(msgComponents, messageType, messageData)
+        self._bot.parseMessage(msg_components, message_type, message_data)
 
 
     def read(self):
         # Start polling our active state
-        self.lastActivity = datetime.datetime.now()
+        self.last_activity = datetime.datetime.now()
         t = threading.Thread(target = self.pollActiveState)
         startThread(t)
 
@@ -212,8 +212,8 @@ class irc:
         self._socket.close()
 
     def quit(self,message="And the sun shines once again."):
-        print color.b_cyan + 'Overcast IRC Bot - Quitting "%s"\n' % message.decode('utf-8') + color.clear
-        self._bot.intentionalDisconnect = True;
+        print color.b_cyan + 'Overcast IRC Bot - Quitting "%s"\n' % message.encode('utf-8') + color.clear
+        self._bot.intentional_disconnect = True;
         self.sendRaw("QUIT :%s \r\n" % message)
 
 
@@ -241,7 +241,7 @@ class irc:
     def sendMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
-        print color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient.decode('utf-8')
+        print color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         
         message = "PRIVMSG %s :%s\r\n" % (recipient, message)
         self.sendRaw(message)
@@ -249,7 +249,7 @@ class irc:
     def sendNoticeMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Notice Error: No message recipient specified! ' + color.clear
-        print color.blue + '@ Sending notice message: ' + color.clear + message.decode('utf-8') + color.blue + ' Recipient: '+ color.clear + recipient.decode('utf-8')
+        print color.blue + '@ Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         
         message = "NOTICE %s :%s\r\n" % (recipient, message)
         self.sendRaw(message)
@@ -257,7 +257,7 @@ class irc:
     def sendActionMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Action Error: No message recipient specified! ' + color.clear
-        print color.blue + '@ Sending action message: ' + color.clear + message.decode('utf-8') + color.blue + ' Recipient: '+ color.clear + recipient.decode('utf-8')
+        print color.blue + '@ Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         
         message = "PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1)
         self.sendRaw(message)
@@ -279,8 +279,8 @@ class irc:
     def pollActiveState(self):
         if self.poll_activity:
             time_now = datetime.datetime.now()
-            # if self._bot.debug: print color.blue + 'Checking for activity timeout, last activity: ' + color.clear + str(self.lastActivity)
-            if self.lastActivity < time_now - datetime.timedelta(minutes = 2):
+            # if self._bot.debug: print color.blue + 'Checking for activity timeout, last activity: ' + color.clear + str(self.last_activity)
+            if self.last_activity < time_now - datetime.timedelta(minutes = 2):
                 self.activity_timeout_count += 1
                 if self.activity_timeout_count > 1:
                     print color.red + 'Activity timeout. Disconnecting! ' + color.clear

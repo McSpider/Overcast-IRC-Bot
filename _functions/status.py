@@ -7,13 +7,16 @@ class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.commands = ["status","mcstatus"]
-        self.functionString = "Get the Overcast and minecraft server status."
+        self.function_string = "Get the Overcast and minecraft server status."
     
-    def main(self, bot, msgData, funcType):
+    def main(self, bot, msg_data, func_type):
         error = ''
         r = requests.get("https://oc.tc/play")
         if r.status_code != requests.codes.ok:
-            error = 'oc.tc - &05' + str(r.status_code) + "&c"
+            status_string = ""
+            if r.status_code == 522:
+                status_string = "Connection Timed Out"
+            error = 'oc.tc - Error: &05' + str(r.status_code) + "&c" + status_string
         else:
             oc_status = ""
             soup = BeautifulSoup(r.text)
@@ -30,7 +33,7 @@ class function(function_template):
 
             if len(players_online) > 0:
                 oc_status = oc_status + " - Online Players: " + players_online
-            bot._irc.sendMSG("%s" % (oc_status), msgData["target"])
+            bot._irc.sendMSG("%s" % (oc_status), msg_data["target"])
 
             ## Offline servers
             eu_servers = []
@@ -51,9 +54,9 @@ class function(function_template):
                     eu_servers.append(offline_server)
 
             if len(us_servers) > 0:
-                bot._irc.sendMSG("US Servers Offline: " + prettyListString(us_servers, " & ", cc = color.irc_red), msgData["target"])
+                bot._irc.sendMSG("US Servers Offline: " + prettyListString(us_servers, " & ", cc = color.irc_red), msg_data["target"])
             if len(eu_servers) > 0:
-                bot._irc.sendMSG("EU Servers Offline: " + prettyListString(eu_servers, " & ", cc = color.irc_red), msgData["target"])
+                bot._irc.sendMSG("EU Servers Offline: " + prettyListString(eu_servers, " & ", cc = color.irc_red), msg_data["target"])
             ##
             
 
@@ -75,7 +78,7 @@ class function(function_template):
                         result = result + keyvalue + " &05Offline&c, "
 
             result = colorizer(result.rstrip(', '))
-            bot._irc.sendMSG("%s" % (result), msgData["target"])
+            bot._irc.sendMSG("%s" % (result), msg_data["target"])
 
-        if error: bot._irc.sendMSG(colorizer(error), msgData["target"])
+        if error: bot._irc.sendMSG(colorizer(error), msg_data["target"])
         return True

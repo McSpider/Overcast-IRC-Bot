@@ -7,13 +7,13 @@ class function(function_template):
         function_template.__init__(self)
         self.type = ["natural"]
         self.priority = 100
-        self.functionString = "Get the title for specific links."
+        self.function_string = "Get the title for specific links."
         self.hidden = True
 
 
-    def main(self, bot, msgData, funcType):
-        if (funcType == "natural"):
-            message = string.join(msgData["message"])
+    def main(self, bot, msg_data, func_type):
+        if (func_type == "natural"):
+            message = string.join(msg_data["message"])
 
             link_matchers = {"Reddit":"(www\.reddit\.com/r/[A-Za-z0-9-_]+/[A-Za-z0-9-/_]+|redd\.it/[A-Za-z0-9-]+)", \
             "Overcast":"(oc\.tc/forums/topics/[A-Za-z0-9-]+|oc\.tc/forums/[A-Za-z0-9-]+)", \
@@ -24,39 +24,43 @@ class function(function_template):
             titles = []
             match_found = False
             for key, value in link_matchers.iteritems():
-                linkMatch = re.findall(value, message, re.IGNORECASE)
+                link_match = re.findall(value, message, re.IGNORECASE)
 
-                if linkMatch:
-                    for link in linkMatch:
+                if link_match:
+                    for link in link_match:
                         # Ignore image imgur links since they usually don't have a useful title. (This should be handled differently...)
                         if re.match("i\.imgur\.com/[A-Za-z0-9-/_#\.]+", link, re.IGNORECASE):
+                            print "linktitle.py - imgur image link"
                             continue
 
                         r = requests.get("http://" + link)
                         if r.status_code != requests.codes.ok:
+                            print "linktitle.py - request status code error"
                             continue
 
                         soup = BeautifulSoup(r.text)
                         if soup.find('title'):
                             match_found = True
-                            pageTitle = soup.find('title').get_text().strip()
+                            page_title = soup.find('title').get_text().strip()
 
-                            pageTitle = encode_unicode(pageTitle)
+                            page_title = encode_unicode(page_title)
 
                             # Ignore oc.tc 404 pages
                             if key == "Overcast":
-                                if pageTitle == "Home - Overcast Network Forum":
+                                if page_title == "Home - Overcast Network Forum":
+                                    print "linktitle.py - oc.tc home/404 page"
                                     continue
 
                             # Ignore imgur 404 pages
                             if key == "Imgur":
-                                if pageTitle == "imgur: the simple image sharer":
+                                if page_title == "imgur: the simple image sharer":
+                                    print "linktitle.py - imgur home/404 page"
                                     continue
 
                             # Don't print the same title twice
-                            if not pageTitle in titles:
-                                titles.append(pageTitle)
-                                bot._irc.sendMSG(pageTitle, msgData["target"])
+                            if not page_title in titles:
+                                titles.append(page_title)
+                                bot._irc.sendMSG(page_title, msg_data["target"])
                     
             return match_found
        

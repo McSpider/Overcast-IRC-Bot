@@ -26,14 +26,14 @@ class function_template(object):
         self.restricted = False
 
         # Specify the functions function.
-        self.functionString = "Function template."
-        self.helpString = None
+        self.function_string = "Function template."
+        self.help_string = None
 
         # Specify if the function blocks any other functions that come after itself and are triggerable with the same parameters. (Only used with natural and status functions)
         self.blocking = True
 
         # To be used internally by functions, may be reset to 0 for spam filters, etc. However it is recomended that you use your own variable in that case.
-        self.runCount = 0
+        self.run_count = 0
 
         # Used to hide the function from the help list
         self.hidden = False
@@ -42,8 +42,8 @@ class function_template(object):
         self.disabled = None #{disabled_by:"",time:""}
 
 
-    def main(self, bot, msgData, funcType):
-        irc.sendMSG("Function not setup, still using template.", bot.masterChannel)
+    def main(self, bot, msg_data, func_type):
+        irc.sendMSG("Function not setup, still using template.", bot.master_channel)
         return True
 
 
@@ -112,7 +112,7 @@ def encode_unicode(input):
         input = input.encode('utf-8')
     except UnicodeEncodeError:
         print color.red + 'Unicode Error: Unable to encode string!' + color.clear
-        irc.sendMSG("Unicode Error: Unable to encode string!", bot.masterChannel)
+        irc.sendMSG("Unicode Error: Unable to encode string!", bot.master_channel)
 
     return input;
 

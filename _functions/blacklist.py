@@ -6,25 +6,25 @@ class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.commands = ["blacklist"]
-        self.functionString = "Manage blacklisted users."
-        self.helpString = "Subcommands: add & remove."
+        self.function_string = "Manage blacklisted users."
+        self.help_string = "Subcommands: add & remove."
         self.restricted = True
 
-    def main(self, bot, msgData, funcType):
-        if len(msgData["message"]) > 1:
-            if msgData["message"][1] == "add":
-                if bot.addBlacklistedHostmask(msgData["message"][2]):
-                    bot._irc.sendMSG("Added hostmask (%s) to blacklist" % msgData["message"][2], msgData["target"])
+    def main(self, bot, msg_data, func_type):
+        if len(msg_data["message"]) > 1:
+            if msg_data["message"][1] == "add":
+                if bot.addBlacklistedHostmask(msg_data["message"][2]):
+                    bot._irc.sendMSG("Added hostmask (%s) to blacklist" % msg_data["message"][2], msg_data["target"])
 
-            if msgData["message"][1] == "remove":
-                if bot.removeBlacklistedHostmask(msgData["message"][2]):
-                    bot._irc.sendMSG("Removed hostmask (%s) from blacklist" % msgData["message"][2], msgData["target"])
+            if msg_data["message"][1] == "remove":
+                if bot.removeBlacklistedHostmask(msg_data["message"][2]):
+                    bot._irc.sendMSG("Removed hostmask (%s) from blacklist" % msg_data["message"][2], msg_data["target"])
         else:
-            if len(bot.blacklistedUsers) == 0:
-                bot._irc.sendMSG("No users blacklisted.", msgData["sender"])
+            if len(bot.blacklisted_users) == 0:
+                bot._irc.sendMSG("No users blacklisted.", msg_data["sender"])
                 return
-            bot._irc.sendMSG("Blacklisted Users:", msgData["sender"])
-            for mask in bot.blacklistedUsers:
-                bot._irc.sendMSG("%s" % mask, msgData["sender"])
+            bot._irc.sendMSG("Blacklisted Users:", msg_data["sender"])
+            for mask in bot.blacklisted_users:
+                bot._irc.sendMSG("%s" % mask, msg_data["sender"])
 
         return False

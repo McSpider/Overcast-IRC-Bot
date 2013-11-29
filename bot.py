@@ -20,22 +20,22 @@ class bot:
         self.realname = config.get('irc_config', 'realname')
 
         self.server = config.get('irc_config', 'server')
-        self.serverPort = config.getint('irc_config', 'server_port')
+        self.server_port = config.getint('irc_config', 'server_port')
 
         self.autojoin_channels = filter(None, config.get('bot_config', 'autojoin_channels').split(','))
-        self.masterChannel = config.get('bot_config', 'master_channel')
+        self.master_channel = config.get('bot_config', 'master_channel')
 
-        self.authedHostmasks = ["~McSpider@192.65.241.17","~plastix@192.65.241.17"]
-        self.blacklistedUsers = [] #{} #{"~McSpider@192.65.241.17":"0"}
+        self.authed_hostmasks = ["~McSpider@192.65.241.17","~plastix@192.65.241.17"]
+        self.blacklisted_users = [] #{} #{"~McSpider@192.65.241.17":"0"}
 
 
         self.debug = config.get('bot_config', 'debug')
         self.triggers = filter(None, [self.nick + ":"] + config.get('bot_config', 'triggers').split(','))
-        self.shortTrigger = config.get('bot_config', 'short_trigger')
+        self.short_trigger = config.get('bot_config', 'short_trigger')
 
-        self.intentionalDisconnect = False;
-        self.reconnectCount = 0;
-        self.reconnectLimit = 5;
+        self.intentional_disconnect = False;
+        self.reconnect_count = 0;
+        self.reconnect_limit = 5;
 
         if self.debug:
             attrs = vars(self)
@@ -44,14 +44,14 @@ class bot:
 
     def main(self):
         print color.b_cyan + "Overcast IRC Bot - Hi! \n" + color.clear
-        self._irc.connectToServer(self.server,self.serverPort)
+        self._irc.connectToServer(self.server,self.server_port)
         self._irc.authUser(self.ident,self.nick,self.realname,self.password)
 
         self._irc.read()
         self._irc.disconnect()
 
-        if not self.intentionalDisconnect and self.reconnectCount < self.reconnectLimit:
-            self.reconnectCount += 1
+        if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
+            self.reconnect_count += 1
             return 1
 
         return 0
@@ -60,28 +60,27 @@ class bot:
         self._functions.checkForFunction(msgComponents, messageType, messageData)
 
     def isUserAuthed(self,hostmask):
-        print hostmask
         hostmask = string.split(hostmask,"!")[1]
-        for mask in self.authedHostmasks:
+        for mask in self.authed_hostmasks:
             if re.match(".*%s.*" % mask, hostmask, re.IGNORECASE):
                 return True
         return False
 
     def hostmaskBlacklisted(self,hostmask):
-        for mask in self.blacklistedUsers:
+        for mask in self.blacklisted_users:
             if re.match(".*%s.*" % mask, hostmask, re.IGNORECASE):
                 return True
         return False
 
     def addBlacklistedHostmask(self,hostmask):
-        if not hostmask in self.blacklistedUsers:
-            self.blacklistedUsers.append(hostmask)
+        if not hostmask in self.blacklisted_users:
+            self.blacklisted_users.append(hostmask)
             return True
         return False
 
     def removeBlacklistedHostmask(self,hostmask):
-        if hostmask in self.blacklistedUsers:
-            self.blacklistedUsers.remove(hostmask)
+        if hostmask in self.blacklisted_users:
+            self.blacklisted_users.remove(hostmask)
             return True
         return False
 

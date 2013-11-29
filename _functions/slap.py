@@ -9,23 +9,23 @@ class function(function_template):
         self.type = ["natural","command"]
         self.commands = ["slap"] 
         self.priority = 100
-        self.functionString = "Slap a person."
+        self.function_string = "Slap a person."
         self.blocking = True
 
         self.slaps = loadMessagesFile("./_data/slaps.txt")
         self.ouch = ["Ouch!","That hurt!","Oww!","Will you stop that!",">_>"]
         self.randomness = []
 
-    def main(self, bot, msgData, funcType):
-        if (funcType == "natural"):
-            message = string.join(msgData["message"])
+    def main(self, bot, msg_data, func_type):
+        if (func_type == "natural"):
+            message = string.join(msg_data["message"])
 
             if re.match("^.*?(slaps|whacks) %s.*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE) or re.match("^.*?gives.*?%s a.*?(slap|whack).*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE):
-                bot._irc.sendMSG(random.choice(self.ouch), msgData["target"])
+                bot._irc.sendMSG(random.choice(self.ouch), msg_data["target"])
                 return True
             return False
 
-        if (funcType == "command"):
+        if (func_type == "command"):
             slap = None;
             while not slap:
               aslap = random.choice(self.slaps)
@@ -35,15 +35,15 @@ class function(function_template):
                     if len(self.randomness) > int(len(self.slaps)/2):
                         del self.randomness[0]
 
-            if len(msgData["message"]) > 1:
-                argument = msgData["message"][1]
+            if len(msg_data["message"]) > 1:
+                argument = msg_data["message"][1]
                 if re.match("^(%s|himself|itself)$" % (bot._irc.nick), argument, re.IGNORECASE):
-                    slap = slap.replace("!target!", msgData["sender"])
+                    slap = slap.replace("!target!", msg_data["sender"])
                 else:
                     slap = slap.replace("!target!", argument)
-                bot._irc.sendActionMSG(slap, msgData["target"])
+                bot._irc.sendActionMSG(slap, msg_data["target"])
             else:
-                slap = slap.replace("!target!", msgData["sender"])
-                bot._irc.sendActionMSG(slap, msgData["target"])
+                slap = slap.replace("!target!", msg_data["sender"])
+                bot._irc.sendActionMSG(slap, msg_data["target"])
             return True
 
