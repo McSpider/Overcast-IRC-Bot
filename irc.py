@@ -100,6 +100,8 @@ class irc:
             if "!" in prefix and "@" in prefix:
                 split = string.split(prefix,"!")
                 nick = split[0]
+                if nick.startswith(":"):
+                    nick = nick[1:]
 
                 split = string.split(split[1],"@")
                 hostmask = split[1]
@@ -110,6 +112,8 @@ class irc:
             else:
                 if type == "MODECHANGE_NOTICE":
                     nick = prefix
+                    if nick.startswith(":"):
+                        nick = nick[1:]
                     messageData["nick"] = nick
                 else:
                     server = prefix
