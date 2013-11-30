@@ -24,7 +24,7 @@ class function(function_template):
                         return
 
                 if bot._functions.disableFunction(msg_data["message"][2], timedelta, disabled_by):
-                    bot._irc.sendMSG("Disabled function: %s - For: %s" % (msg_data["message"][2], str(timedelta)), msg_data["target"])
+                    bot._irc.sendMSG("Disabled function: %s - For: %s" % (msg_data["message"][2], timedstr(timedelta)), msg_data["target"])
                 else:
                     bot._irc.sendMSG("Invalid function name: %s" % msg_data["message"][2], msg_data["target"])
 

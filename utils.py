@@ -35,7 +35,37 @@ class color():
     irc_boldblack = '\x03' + '14'
     irc_white = '\x03' + '15'
 
-    # irc_bold = '\x02'
-    # irc_italic = '\x09'
-    # irc_underline = '\x15'
+    irc_bold = '\x02'
+    irc_italic = '\x09'
+    irc_underline = '\x15'
     irc_clear = '\x0f'
+
+    # Underline2 = 0x1f
+    # Reverse = 0x16
+    # StrikeThrough = 0x13
+
+
+def timedstr(delta, short = False):
+    s = delta.seconds
+    hours, remainder = divmod(s, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    output = ""
+
+    days = delta.days
+    if days > 1: output += "%i days" % days
+    elif days == 1: output += "%i day" % days
+
+    if hours > 0 or minutes > 0 or seconds > 0:
+        output += ", "
+
+    if hours > 1: output += "%i%s " % (hours, "h" if short else " hours")
+    elif hours == 1: output += "%i%s " % (hours, "h" if short else " hour")
+    if minutes > 1: output += "%i%s " % (minutes, "m" if short else " minutes")
+    elif minutes == 1: output += "%i%s " % (minutes, "m" if short else " minute")
+
+    if seconds == 1: output += "%i%s " % (seconds, "s" if short else " second")
+    elif seconds > 1 or (seconds == 0 and hours == 0 and minutes == 0 and days == 0): output += "%i%s " % (seconds, "s" if short else " seconds")
+
+    return output
+

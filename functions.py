@@ -100,7 +100,7 @@ class functions:
                             msg_data["command"] = message_command
                             if message_command in func.commands:
                                 if disabled:
-                                    self._irc.sendMSG("%s function disabled by: %s - Expires in: %s" % (func.name ,disabled[0], str(disabled[1])), self._bot.master_channel)
+                                    self._irc.sendMSG("%s function disabled by: %s - Expires in: %s" % (func.name ,disabled[0], timedstr(disabled[1])), self._bot.master_channel)
                                     # self._irc.sendMSG("Triggered by: '%s'" % msg_data["raw_message"], self._bot.master_channel)
                                     continue
                                 if not func.restricted or (func.restricted and self._bot.isUserAuthed(sender_full_hostmask)):
@@ -123,7 +123,7 @@ class functions:
                 disabled = self.isFunctionDisabled(func)
                 if "status" in func.type:
                     if disabled:
-                        self._irc.sendMSG("%s function disabled by: %s - Expires in: %s" % (func.name ,disabled[0], str(disabled[1])), self._bot.master_channel)
+                        self._irc.sendMSG("%s function disabled by: %s - Expires in: %s" % (func.name ,disabled[0], timedstr(disabled[1])), self._bot.master_channel)
                         # self._irc.sendMSG("Triggered by: '%s'" % msg_data["raw_message"], self._bot.master_channel)
                         continue
                     func_exectuted = self.runFunction(func, msg_data, "status")

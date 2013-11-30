@@ -48,7 +48,7 @@ class function(function_template):
                 page = 1
 
             pages_info_string = colorizer("(Page &05%i&c of &05%i&c) (Use &03-a&c to list all)" % (page, pages))
-            if all_pages: pages_info_string = "(%i Functions)" % page_size
+            if all_pages: pages_info_string = "(&05%i&c Functions)" % page_size
 
             bot._irc.sendMSG("Functions you can trigger: %s" % pages_info_string, msg_data["sender"])
 
@@ -64,8 +64,10 @@ class function(function_template):
                 func_type = func_type + "."
                 func_string = "No commands"
                 if fType == "command":
-                    func_string = "Commands: %s" % prettyListString(func.commands, " & ", color.irc_blue)
-                bot._irc.sendMSG((color.irc_white + func_type + color.irc_clear + func.name).ljust(20) + func_string, msg_data["sender"])
+                    func_string = " Commands: %s" % prettyListString(func.commands, " & ", color.irc_blue).ljust(24)
+                disabled = bot._functions.isFunctionDisabled(func)
+                funct_disabled = colorizer(" &05Disabled for: %s&c" % timedstr(disabled[1],True) if disabled else "")
+                bot._irc.sendMSG((color.irc_white + func_type + color.irc_clear + func.name).ljust(20) + func_string + funct_disabled, msg_data["sender"])
 
             if page == 1 or all_pages:
                 bot._irc.sendMSG("For more info about a specific function use: help {function name}", msg_data["sender"])
