@@ -122,7 +122,7 @@ def encode_unicode(input):
 def strFromBool(bool):
     return "Yes" if bool else "No"
 
-def pageFromList(self, page_list, page_index, page_size):
+def pageFromList(page_list, page_index, page_size):
     start = (page_index - 1) * page_size
     end = start + page_size
 
