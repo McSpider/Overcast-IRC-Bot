@@ -100,7 +100,8 @@ class functions:
                             msg_data["command"] = message_command
                             if message_command in func.commands:
                                 if disabled:
-                                    self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self._bot.master_channel)
+                                    self._irc.sendMSG("%s function disabled by: %s - Expires in: %s" % (func.name ,disabled[0], str(disabled[1])), self._bot.master_channel)
+                                    # self._irc.sendMSG("Triggered by: '%s'" % msg_data["raw_message"], self._bot.master_channel)
                                     continue
                                 if not func.restricted or (func.restricted and self._bot.isUserAuthed(sender_full_hostmask)):
                                     func_exectuted = self.runFunction(func, msg_data, "command")
@@ -122,7 +123,8 @@ class functions:
                 disabled = self.isFunctionDisabled(func)
                 if "status" in func.type:
                     if disabled:
-                        self._irc.sendMSG("%s function disabled by: %s" % (func.name ,disabled[0]), self._bot.master_channel)
+                        self._irc.sendMSG("%s function disabled by: %s - Expires in: %s" % (func.name ,disabled[0], str(disabled[1])), self._bot.master_channel)
+                        # self._irc.sendMSG("Triggered by: '%s'" % msg_data["raw_message"], self._bot.master_channel)
                         continue
                     func_exectuted = self.runFunction(func, msg_data, "status")
                     if func_exectuted and func.blocking:
@@ -181,7 +183,7 @@ class functions:
         if current_time > function.disabled["time"]:
             function.disabled = None
             return False
-        return [function.disabled["disabled_by"], current_time - function.disabled["time"]]
+        return [function.disabled["disabled_by"], function.disabled["time"] - current_time]
 
     def disableFunction(self, function_name, time_delta, disabled_by):
         function = self.getFunctionWithName(function_name)
@@ -201,7 +203,7 @@ class functions:
 
     def getFunctionWithName(self, function_name):
         for function in self.functions_list:
-            if function.name == function_name:
+            if re.match("^%s(\.py$|$)" % re.escape(function_name), function.name, re.IGNORECASE):
                 return function
         return False
 

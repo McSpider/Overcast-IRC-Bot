@@ -93,20 +93,23 @@ def colorizer(message):
     message = message.replace("&c", color.irc_clear)
     return message
 
-def parseTimeDelta(input):
-    value = input[1:]
+def parseTimeDelta(str_input):
+    value = str_input
+    if str_input.endswith(("s","m","h","d")):
+        value = str_input[:-1]
+
     if not value.isalnum():
         return False
     value = int(value)
 
-    if input.startswith("s"):
+    if str_input.endswith("s"):
         return datetime.timedelta(seconds = value)
-    elif input.startswith("m"):
-        return datetime.timedelta(minutes = value)
-    elif input.startswith("h"):
+    elif str_input.endswith("h"):
         return datetime.timedelta(hours = value)
-    elif input.startswith("d"):
+    elif str_input.endswith("d"):
         return datetime.timedelta(days = value)
+    else:
+        return datetime.timedelta(minutes = value)
 
     return False
 
