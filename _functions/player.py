@@ -6,7 +6,7 @@ import requests
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.commands = ["player"]
+        self.commands = ["player","stats"]
         self.functionString = "Show the stats for a player."
 
     def main(self, bot, msgData, funcType):
@@ -48,6 +48,7 @@ class function(function_template):
                 kd_ratio = soup.find("small", text=["kd ratio"]).findParent('h2').contents[0].strip('\n')
                 kk_ratio = soup.find("small", text=["kk ratio"]).findParent('h2').contents[0].strip('\n')
                 joins = soup.find("small", text=["server joins"]).findParent('h2').contents[0].strip('\n')
+                raindrops = soup.find("small", text=["raindrops"]).findParent('h2').contents[0].strip('\n')
 
                 wools = soup.find("small", text=["wools placed"]).findParent('h2').contents[0].strip('\n')
                 cores = soup.find("small", text=["cores leaked"]).findParent('h2').contents[0].strip('\n')
@@ -56,8 +57,9 @@ class function(function_template):
                 stats_message = colorizer("Kills:&05 %s&c, Deaths:&05 %s&c, KD Ratio:&05 %s&c, KK Ratio:&05 %s&c" % (kills, deaths, kd_ratio, kk_ratio))
                 objectives_message = colorizer("Wools Placed:&02 %s&c, Cores Leaked:&02 %s&c, Monuments Destroyed:&02 %s&c" % (wools, cores, monuments))
                 friends_message = colorizer("Friends:&03 %s&c, Joins:&03 %s&c" % (friends, joins))
+                raindrops_message = colorizer("&10Rain&cdrops: %s" % (raindrops))
 
-                bot._irc.sendMSG("%s %s" % (str(player), last_seen), msgData["target"])
+                bot._irc.sendMSG("%s %s - %s" % (str(player), last_seen, raindrops_message), msgData["target"])
                 bot._irc.sendMSG(stats_message, msgData["target"])
                 bot._irc.sendMSG(objectives_message, msgData["target"])
                 bot._irc.sendMSG(friends_message, msgData["target"])
