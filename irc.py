@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import socket, threading
+import traceback
 import string, re
 import datetime
 import select
@@ -189,15 +190,24 @@ class irc:
         readbuffer = ""
         # Loop till the readbuffer is nil (i.e. the socket is disconnected)
         while self.read_active == True:
-            try:
-                read_status = select.select([self._socket], [], [], 2)
-            except Exception, e:
-                trace = traceback.format_exc()
-                print color.red + trace + color.clear
-                break;
-
+            read_status = select.select([self._socket], [], [], 2)
+            
             if read_status[0]:
-                readbuffer = readbuffer+self._socket.recv(512).decode('utf-8')
+                try:
+                    readdata = self._socket.recv(512)
+                    try:
+                        readbuffer = readbuffer+readdata.decode('utf-8')
+                    except Exception, e:
+                        trace = traceback.format_exc()
+                        print color.red + trace + color.clear
+                except socket.error as e:
+                    trace = traceback.format_exc()
+                    print color.red + trace + color.clear
+
+                    self._bot.disconnected_errno = e.errno
+                    self.read_active = False
+
+
                 if not readbuffer: break
 
                 temp = string.split(readbuffer, "\n")
@@ -304,7 +314,11 @@ class irc:
     def _sendQueuedMessages(self):
         if len(self._messages_queue) > 0:
             message = self._messages_queue.pop(0)
-            self._socket.send(message.encode('utf-8'))
+            try:
+                self._socket.send(message.encode('utf-8'))
+            except Exception, e:
+                trace = traceback.format_exc()
+                print color.red + trace + color.clear
 
         threading.Timer(self._messages_queue_send_interval, self._sendQueuedMessages).start()
 
