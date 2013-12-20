@@ -16,7 +16,7 @@ class function(function_template):
             message = string.join(msg_data["message"])
 
             link_matchers = {"Reddit":"(www\.reddit\.com/r/[A-Za-z0-9-_]+/[A-Za-z0-9-/_]+|redd\.it/[A-Za-z0-9-]+)", \
-            "Overcast":"(oc\.tc/forums/topics/[A-Za-z0-9-]+|oc\.tc/forums/[A-Za-z0-9-]+)", \
+            "Overcast":"(oc\.tc/forums/topics/[A-Za-z0-9-]+|oc\.tc/forums/posts/[A-Za-z0-9-]+|oc\.tc/forums/[A-Za-z0-9-]+)", \
             "Imgur":"(imgur\.com/[A-Za-z0-9-/_#]+|i\.imgur\.com/[A-Za-z0-9-/_#\.]+)", \
             "Oc Issues":"(github\.com/OvercastNetwork/[^\s/]+/issues/[0-9]+)"}
 
@@ -30,12 +30,16 @@ class function(function_template):
                     for link in link_match:
                         # Ignore image imgur links since they usually don't have a useful title. (This should be handled differently...)
                         if re.match("i\.imgur\.com/[A-Za-z0-9-/_#\.]+", link, re.IGNORECASE):
-                            print "linktitle.py - imgur image link"
                             continue
 
                         r = requests.get("http://" + link)
                         if r.status_code != requests.codes.ok:
-                            print "linktitle.py - request status code error"
+                            if r.status_code == 404:
+                                bot._irc.sendMSG(message, bot.master_channel)
+                                bot._irc.sendMSG('404 - Page not found', bot.master_channel)
+                            else:
+                                bot._irc.sendMSG(message, bot.master_channel)
+                                bot._irc.sendMSG('Request Exception - Code: %s' % str(r.status_code), bot.master_channel)
                             continue
 
                         soup = BeautifulSoup(r.text)
@@ -48,13 +52,11 @@ class function(function_template):
                             # Ignore oc.tc 404 pages
                             if key == "Overcast":
                                 if page_title == "Home - Overcast Network Forum":
-                                    print "linktitle.py - oc.tc home/404 page"
                                     continue
 
                             # Ignore imgur 404 pages
                             if key == "Imgur":
                                 if page_title == "imgur: the simple image sharer":
-                                    print "linktitle.py - imgur home/404 page"
                                     continue
 
                             # Don't print the same title twice
