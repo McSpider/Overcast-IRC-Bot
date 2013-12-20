@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sys
+import traceback
+import socket
 from time import sleep
 
 from irc import *
@@ -36,6 +38,7 @@ class bot:
         self.intentional_disconnect = False;
         self.reconnect_count = 0;
         self.reconnect_limit = 5;
+        self.disconnected_errno = None;
 
         if self.debug:
             attrs = vars(self)
@@ -51,7 +54,11 @@ class bot:
         self._irc.disconnect()
 
         if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
+            if (self.disconnected_errno != errno.ECONNRESET):
+                return 0
+
             self.reconnect_count += 1
+            print color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected!" + color.clear
             return 1
 
         return 0
@@ -84,7 +91,7 @@ class bot:
             return True
         return False
 
-    def notAllowedMessage(user,recipient):
+    def notAllowedMessage(self,user,recipient):
         self._irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
 
 
@@ -95,9 +102,13 @@ try:
         if status == 1:
             print color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected, reconnecting. " + color.clear
         _bot = bot()
-        status = _bot.main()
+        try:
+            status = _bot.main()
+        except Exception, e:
+            trace = traceback.format_exc()
+            print color.red + trace + color.clear
     
-    print color.b_cyan + "\nOvercast IRC Bot - Shutdown, have a nice day. " + color.clear
+    print color.b_cyan + "\nOvercast IRC Bot - Shutdown, have a nice day." + color.clear
 
 except KeyboardInterrupt:
     pass
