@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import os, sys
 import string, re
+import traceback
 
 import importlib
 from utils import *
 import datetime
-import traceback
 
 
 class functions:
@@ -74,11 +74,16 @@ class functions:
                     self.global_cooldown[msg_sender]["messages"] = 0
 
 
-        # Handle channel messages
+        # Handle channel/private messages
         if (public_message or private_message) and len(msg_components) >= 3:
             sender_full_hostmask = message_data["nick"] + "!" + message_data["username"] + "@" + message_data["hostmask"]
             message_recipient = msg_components[2]
             msg_sender = message_data["nick"]
+
+            if public_message and self._irc._channels.isConnectedTo(message_recipient):
+                if self._irc._channels.isIgnoring(message_recipient):
+                    print color.b_red + "Ignoring message from ignored channel: " + color.clear + message_recipient
+                    return
 
             target = message_recipient
             if private_message:

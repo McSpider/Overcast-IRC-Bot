@@ -23,6 +23,11 @@ class channels:
         print color.blue + 'Parting channel: ' + color.clear + chan
         self._irc.sendRaw(('PART %s \r\n' % chan))
 
+    def ignore(self, chan, flag):
+        print color.blue + 'Ignoring chat from channel: ' + color.clear + chan + (" Yes" if flag else " No")
+        if self.list.has_key(chan):
+            self.list[chan].ignored = flag
+
     def joinedTo(self, chan):
         print color.blue + 'Joined channel: ' + color.clear + chan
         if self.list.has_key(chan):
@@ -41,6 +46,11 @@ class channels:
     def isConnectedTo(self,chan):
         if self.list.has_key(chan):
             return self.list[chan].connected
+        return False
+
+    def isIgnoring(self,chan):
+        if self.list.has_key(chan):
+            return self.list[chan].ignored
         return False
 
     def hasFlagIn(self,flag,chan):
@@ -66,6 +76,7 @@ class channel:
         self.flags = [] # ["flag","+v"]
         self.my_flags = []
         self.connected = False
+        self.ignored = False
         pass
 
 
