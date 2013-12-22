@@ -56,7 +56,7 @@ def timedstr(delta, short = False):
     if days > 1: output += "%i days" % days
     elif days == 1: output += "%i day" % days
 
-    if hours > 0 or minutes > 0 or seconds > 0:
+    if days > 0 and (hours > 0 or minutes > 0 or seconds > 0):
         output += ", "
 
     if hours > 1: output += "%i%s " % (hours, "h" if short else " hours")
