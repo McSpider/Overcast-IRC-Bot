@@ -15,8 +15,7 @@ class function(function_template):
         if len(message) > 1:
             player = message[1]
         else:
-            bot._irc.sendMSG("No player specified", msgData["target"])
-            return True
+            player = msgData["sender"]
 
         error = ''
         r = requests.get("http://oc.tc/" + str(player))
