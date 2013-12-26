@@ -7,15 +7,15 @@ class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.commands = ["premium","haspaid","paid"]
-        self.functionString = "Check if a minecraft user has paid."
+        self.function_string = "Check if a minecraft user has paid."
 
-    def main(self, bot, msgData, funcType):
-        message = msgData["message"]
+    def main(self, bot, msg_data, func_type):
+        message = msg_data["message"]
         player = "";
         if len(message) > 1:
             player = message[1]
         else:
-            player = msgData["sender"]
+            player = msg_data["sender"]
 
         error = ''
         r = requests.get("https://minecraft.net/haspaid.jsp?user=" + str(player))
@@ -27,9 +27,9 @@ class function(function_template):
         else:
             soup = BeautifulSoup(r.text)
             if soup.find(text=["false"]):
-                bot._irc.sendMSG("%s has not purchased minecraft yet." % (player), msgData["target"])
+                bot._irc.sendMSG("%s has not purchased minecraft yet." % (player), msg_data["target"])
             else:
-                bot._irc.sendMSG("%s has purchased minecraft." % (player), msgData["target"])
+                bot._irc.sendMSG("%s has purchased minecraft." % (player), msg_data["target"])
 
-        if error: bot._irc.sendMSG(error, msgData["target"])
+        if error: bot._irc.sendMSG(error, msg_data["target"])
         return True

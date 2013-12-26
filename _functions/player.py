@@ -7,15 +7,15 @@ class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.commands = ["player","stats"]
-        self.functionString = "Show the stats for a player."
+        self.function_string = "Show the stats for a player."
 
-    def main(self, bot, msgData, funcType):
-        message = msgData["message"]
+    def main(self, bot, msg_data, func_type):
+        message = msg_data["message"]
         player = "";
         if len(message) > 1:
             player = message[1]
         else:
-            player = msgData["sender"]
+            player = msg_data["sender"]
 
         error = ''
         r = requests.get("http://oc.tc/" + str(player))
@@ -58,12 +58,12 @@ class function(function_template):
                 friends_message = colorizer("Friends:&03 %s&c, Joins:&03 %s&c" % (friends, joins))
                 raindrops_message = colorizer("&10Rain&cdrops: %s" % (raindrops))
 
-                bot._irc.sendMSG("%s %s - %s" % (str(player), last_seen, raindrops_message), msgData["target"])
-                bot._irc.sendMSG(stats_message, msgData["target"])
-                bot._irc.sendMSG(objectives_message, msgData["target"])
-                bot._irc.sendMSG(friends_message, msgData["target"])
+                bot._irc.sendMSG("%s %s - %s" % (str(player), last_seen, raindrops_message), msg_data["target"])
+                bot._irc.sendMSG(stats_message, msg_data["target"])
+                bot._irc.sendMSG(objectives_message, msg_data["target"])
+                bot._irc.sendMSG(friends_message, msg_data["target"])
             else:
                 error = 'Invalid user.'
 
-        if error: bot._irc.sendMSG(error, msgData["target"])
+        if error: bot._irc.sendMSG(error, msg_data["target"])
         return True
