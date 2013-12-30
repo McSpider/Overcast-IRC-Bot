@@ -15,7 +15,7 @@ class function(function_template):
             msg = " ".join(msg_data["message"][1:])
             players = msg.strip().split(',')
         else:
-            bot._irc.sendMSG("Please provide a username or comma seperated list of usernames.", msg_data["target"])
+            bot._irc.sendMSG("Please provide a username or comma separated list of usernames", msg_data["target"])
 
 
         recipient = msg_data["target"]
@@ -34,7 +34,7 @@ class function(function_template):
                 elif soup.find(text=["TAKEN"]):
                     bot._irc.sendMSG("%s - Username has already been taken" % player, recipient)
                 elif soup.find(text=["invalid characters"]):
-                    bot._irc.sendMSG("%s - Name contains invalid characters. Please stick to letters, numbers and _." % player, recipient)
+                    bot._irc.sendMSG("%s - Name contains invalid characters. Please stick to letters, numbers and _" % player, recipient)
                 else:
                     bot._irc.sendMSG("%s - %s" % (player, soup.text), recipient)
 
