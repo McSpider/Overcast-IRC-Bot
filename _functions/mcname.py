@@ -17,6 +17,9 @@ class function(function_template):
         else:
             bot._irc.sendMSG("Please provide a username or comma separated list of usernames", msg_data["target"])
 
+        if len(players) > 10 and not bot.isUserAuthed(msg_data["sender_hostmask"]):
+            bot._irc.sendMSG("Please restrict your query to less that 10 usernames", msg_data["sender"])
+            return True
 
         recipient = msg_data["target"]
         if len(players) > 1:
