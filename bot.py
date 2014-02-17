@@ -52,6 +52,7 @@ class bot:
 
         self._irc.read()
         self._irc.disconnect()
+        self._functions.unloadFunctions()
 
         if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
             if (self.disconnected_errno != errno.ECONNRESET):

@@ -30,9 +30,14 @@ class functions:
                 command_func = getattr(function, "function")
                 instance = command_func()
                 instance.name = function_name + ext
+                instance.load()
                 self.functions_list.append(instance)
 
             self.functions_list = sorted(self.functions_list, key=lambda function: function.priority, reverse=False)
+
+    def unloadFunctions(self):
+        for func in self.functions_list:
+            func.unload()
 
     def checkForFunction(self, msg_components, message_type, message_data):
         private_message = (message_type == "QUERY_MSG") or (message_type == "ACTION_MSG")

@@ -1,8 +1,8 @@
-
 #!/usr/bin/env python
 import re
 import string
 import datetime
+import json    
 
 import urllib
 from bs4 import BeautifulSoup
@@ -41,10 +41,39 @@ class function_template(object):
         # Disable a function for specific period of time
         self.disabled = None #{disabled_by:"",time:""}
 
+    def load(self):
+        print "Function load: " + self.name
+        pass
+
+    def unload(self):
+        print "Function unload: " + self.name
+        pass
+
 
     def main(self, bot, msg_data, func_type):
         irc.sendMSG("Function not setup, still using template.", bot.master_channel)
         return True
+
+
+    def loadFunctionDataFile(self, filename):
+        data = {}
+        data_file = '_functiondata/' + str(self.name) + '_'+ str(filename) + '.json'
+        try:
+            with open(data_file, 'r') as input:
+                data = json.load(input)
+            return data
+        except IOError:
+            print color.red + "Function data file not found: " + color.clear + data_file
+            with open(data_file, 'w') as output:
+                json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+
+        return data
+
+    def saveDataToDataFile(self, data, filename):
+        data_file = '_functiondata/' + str(self.name) + '_'+ str(filename) + '.json'
+        with open(data_file, 'w') as output:
+            json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+
 
 
 def prettyListString(alist, joiner, cc = None, capitalize = False):
