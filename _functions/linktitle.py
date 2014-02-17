@@ -47,7 +47,7 @@ class function(function_template):
                             match_found = True
                             page_title = soup.find('title').get_text().strip()
 
-                            page_title = page_title
+                            page_title = "%s" % (page_title)
 
                             # Ignore oc.tc 404 pages
                             if key == "Overcast":

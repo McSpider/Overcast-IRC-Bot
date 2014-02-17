@@ -46,7 +46,7 @@ class function(function_template):
                 vimeo_author = ' by: ' + vimeo_soup.find('user_name').get_text()
             if vimeo_soup.find('stats_number_of_likes') and vimeo_soup.find('stats_number_of_comments'):
                 vimeo_rating = colorizer(" - Likes:&03 %s&c Comments:&02 %s" % (vimeo_soup.find('stats_number_of_likes').get_text(), vimeo_soup.find('stats_number_of_comments').get_text()))
-            return encode_unicode("%s%s%s" % (vimeo_title, vimeo_author, vimeo_rating))
+            return "%s%s%s" % (vimeo_title, vimeo_author, vimeo_rating)
 
         return False
 

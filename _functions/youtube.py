@@ -62,7 +62,7 @@ class function(function_template):
                 youtube_author = ' by: ' + youtube_soup.find('author').find('name').get_text()
             if youtube_soup.find('yt:rating'):
                 youtube_rating = colorizer(" - Likes:&03 %s&c Dislikes:&05 %s" % (youtube_soup.find('yt:rating')['numlikes'], youtube_soup.find('yt:rating')['numdislikes']))
-            return encode_unicode("%s%s%s" % (youtube_title, youtube_author, youtube_rating))
+            return "%s%s%s" % (youtube_title, youtube_author, youtube_rating)
 
         return False
 
