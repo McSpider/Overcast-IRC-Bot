@@ -10,6 +10,10 @@ class function(function_template):
         self.function_string = "Get the Overcast and minecraft server status."
     
     def main(self, bot, msg_data, func_type):
+        show_legacy = False
+        if len(msg_data["message"]) > 1 and re.match("^-l$", msg_data["message"][1]):
+            show_legacy = True
+
         error = ''
         r = requests.get("https://oc.tc/play")
         if r.status_code != requests.codes.ok:
@@ -64,21 +68,41 @@ class function(function_template):
         if r.status_code != requests.codes.ok:
             error = 'status.mojang.com/check - &05' + str(r.status_code) + "&c"
         else:
-            result = ""
-            mojang_status = r.json()
-            for x in mojang_status:
-                for key in x:
-                    keyvalue = key
-                    if key != "minecraft.net":
-                        keyvalue = key.split(".",1)[0]
-
-                    if x[key] == "green":
-                        result = result + keyvalue + " &03OK&c, "
+            mojang_status_raw = r.json()
+            legacy_items = ["login.minecraft.net"];
+            mojang_status = []
+            legacy_status = []
+            # Move status items to correct list
+            for status in mojang_status_raw:
+                for key in status:
+                    if key in legacy_items:
+                        legacy_status.append(status)
                     else:
-                        result = result + keyvalue + " &05Offline&c, "
+                        mojang_status.append(status)
 
-            result = colorizer(result.rstrip(', '))
-            bot._irc.sendMSG("%s" % (result), msg_data["target"])
+            status_string = self.parseStatus(mojang_status)
+            status_string = colorizer(status_string.rstrip(', '))
+            bot._irc.sendMSG("%s" % (status_string), msg_data["target"])
+            
+            if show_legacy:
+                status_string_legacy = self.parseStatus(legacy_status)
+                status_string_legacy = colorizer(status_string.rstrip(', '))
+                bot._irc.sendMSG("Legacy: %s" % (status_string_legacy), msg_data["target"])
+
 
         if error: bot._irc.sendMSG(colorizer(error), msg_data["target"])
         return True
+
+    def parseStatus(self, status):
+        result = ""
+        for x in status:
+            for key in x:
+                keyvalue = key
+                if key != "minecraft.net":
+                    keyvalue = key.split(".",1)[0]
+
+                if x[key] == "green":
+                    result = result + keyvalue + " &03OK&c, "
+                else:
+                    result = result + keyvalue + " &05Offline&c, "
+        return result
