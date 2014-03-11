@@ -12,8 +12,13 @@ class function_template(object):
     def __init__(self):
         self.name = None
 
-        # Register the funtion types, COMMAND, NATURAL and STATUS
-        # Natural functions parse all text and should return True if they are triggered.
+        # Register the function types, COMMAND, KEY, NATURAL and STATUS
+        # Command functions parse text messages for the functions commands.
+        # - If no match is found the function is ignored.
+        # Natural & Status functions parse all text & status messages respectively.
+        # Key functions handle all messages sent by a user/channel if they have a key lock.
+        # - If the user/channel does not have key lock the function is ignored.
+        # All functions should return True if they do anything, e.g. send messages, update data files.
         self.type = ["command"]
 
         # Specify the functions priority from 100 to 1
@@ -32,8 +37,11 @@ class function_template(object):
         # Specify if the function blocks any other functions that come after itself and are triggerable with the same parameters. (Only used with natural and status functions)
         self.blocking = True
 
-        # To be used internally by functions, may be reset to 0 for spam filters, etc. However it is recomended that you use your own variable in that case.
+        # To be used internally by functions, may be reset to 0 for spam filters, etc. However it is recommended that you use your own variable in that case.
         self.run_count = 0
+
+        # Used when the function is of type KEY to check if the lock is currently active.
+        self.key_lock = []
 
         # Used to hide the function from the help list
         self.hidden = False
@@ -77,6 +85,19 @@ class function_template(object):
             json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
 
 
+    def hasKeyLockFor(self, entity):
+        if entity in self.key_lock:
+            return True
+        return False
+
+    def addToKeyLock(self, entity):
+        print color.cyan + "Adding " + entity + " to key lock" + color.clear
+        self.key_lock.append(entity)
+
+    def removeFromKeyLock(self, entity):
+        print color.cyan + "Removing key lock for " + entity + color.clear
+        self.key_lock.append(entity)
+
 
 def prettyListString(alist, joiner, cc = None, capitalize = False):
     if capitalize:
@@ -92,6 +113,8 @@ def prettyListString(alist, joiner, cc = None, capitalize = False):
         return result
     elif len(alist) == 1: return alist[0]
 
+# Load a file and split it into a list of lines.
+# - Ignores empty lines and lines commented with a hash (#)
 def loadMessagesFile(file):
     lines1 = open(file).read().splitlines()
     lines2 = [line for line in lines1 if not line.startswith('#')]
@@ -116,7 +139,6 @@ def colorizer(message):
     message = message.replace("&13", color.irc_boldviolet)
     message = message.replace("&14", color.irc_boldblack)
     message = message.replace("&15", color.irc_white)
-
 
     # message = message.replace("&b", color.irc_bold)
     # message = message.replace("&i", color.irc_italic)
@@ -143,15 +165,6 @@ def parseTimeDelta(str_input):
         return datetime.timedelta(minutes = value)
 
     return False
-
-def encode_unicode(input):
-    try:
-        input = input.encode('utf-8')
-    except UnicodeEncodeError:
-        print color.red + 'Unicode Error: Unable to encode string!' + color.clear
-        irc.sendMSG("Unicode Error: Unable to encode string!", bot.master_channel)
-
-    return input;
 
 def strFromBool(bool):
     return "Yes" if bool else "No"

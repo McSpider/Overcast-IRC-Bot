@@ -97,9 +97,16 @@ class functions:
             msg_data = {"recipient":message_recipient,"message":msg_components[3:], "raw_message":" ".join(msg_components), "sender":msg_sender, "sender_hostmask":sender_full_hostmask, "message_type":message_type, "target":target}
             if msg_data["message"][0].startswith(":"):
                 msg_data["message"][0] = (msg_data["message"][0])[1:]
+
             # Check functions
             for func in self.functions_list:
                 disabled = self.isFunctionDisabled(func)
+                if "key" in func.type and func.hasKeyLockFor(target):
+                    print color.cyan + "Main function lock active" + color.clear
+                    func_exectuted = self.runFunction(func, msg_data, "key")
+                    if func_exectuted:
+                        return
+
                 if "command" in func.type and len(msg_components) >= 4:
                     # Check if the message has a trigger and a subcommand or just a subcommand if its a PM
                     if (self._irc._channels.isConnectedTo(message_recipient) or private_message):
