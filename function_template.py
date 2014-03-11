@@ -57,7 +57,8 @@ class function_template(object):
 
     def loadFunctionDataFile(self, filename):
         data = {}
-        data_file = '_functiondata/' + str(self.name) + '_'+ str(filename) + '.json'
+        function_name = string.split(self.name,".")[0]
+        data_file = '_functiondata/' + str(function_name) + '_'+ str(filename) + '.json'
         try:
             with open(data_file, 'r') as input:
                 data = json.load(input)
@@ -70,7 +71,8 @@ class function_template(object):
         return data
 
     def saveDataToDataFile(self, data, filename):
-        data_file = '_functiondata/' + str(self.name) + '_'+ str(filename) + '.json'
+        function_name = string.split(self.name,".")[0]
+        data_file = '_functiondata/' + str(function_name) + '_'+ str(filename) + '.json'
         with open(data_file, 'w') as output:
             json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
 
