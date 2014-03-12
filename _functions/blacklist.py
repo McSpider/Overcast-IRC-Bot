@@ -11,14 +11,15 @@ class function(function_template):
         self.restricted = True
 
     def main(self, bot, msg_data, func_type):
-        if len(msg_data["message"]) > 1:
+        if len(msg_data["message"]) > 2:
+            new_mask = msg_data["message"][2]
             if msg_data["message"][1] == "add":
-                if bot.addBlacklistedHostmask(msg_data["message"][2]):
-                    bot._irc.sendMSG("Added hostmask (%s) to blacklist" % msg_data["message"][2], msg_data["target"])
-
+                if bot.addBlacklistedHostmask(new_mask):
+                    bot._irc.sendMSG("Added hostmask (%s) to blacklist" % new_mask, msg_data["target"])
             if msg_data["message"][1] == "remove":
                 if bot.removeBlacklistedHostmask(msg_data["message"][2]):
-                    bot._irc.sendMSG("Removed hostmask (%s) from blacklist" % msg_data["message"][2], msg_data["target"])
+                    bot._irc.sendMSG("Removed hostmask (%s) from blacklist" % new_mask, msg_data["target"])
+
         else:
             if len(bot.blacklisted_users) == 0:
                 bot._irc.sendMSG("No users blacklisted.", msg_data["sender"])
