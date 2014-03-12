@@ -2,7 +2,6 @@
 import re
 import string
 import datetime
-import json    
 
 import urllib
 from bs4 import BeautifulSoup
@@ -49,40 +48,31 @@ class function_template(object):
         # Disable a function for specific period of time
         self.disabled = None #{disabled_by:"",time:""}
 
-    def load(self):
+    def load(self, bot):
         print "Function load: " + self.name
-        pass
+        self._bot = bot
 
-    def unload(self):
+    def unload(self, bot):
         print "Function unload: " + self.name
-        pass
 
 
     def main(self, bot, msg_data, func_type):
-        irc.sendMSG("Function not setup, still using template.", bot.master_channel)
+        function_name = string.split(self.name,".")[0]
+        irc.sendMSG("Function not setup, still using template: " + function_name, bot.master_channel)
         return True
 
 
     def loadFunctionDataFile(self, filename):
-        data = {}
         function_name = string.split(self.name,".")[0]
-        data_file = '_functiondata/' + str(function_name) + '_'+ str(filename) + '.json'
-        try:
-            with open(data_file, 'r') as input:
-                data = json.load(input)
-            return data
-        except IOError:
-            print color.red + "Function data file not found: " + color.clear + data_file
-            with open(data_file, 'w') as output:
-                json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+        directory = '_functiondata/' + str(function_name)
+        data = self._bot.openDataFile(filename, directory)
 
         return data
 
     def saveDataToDataFile(self, data, filename):
         function_name = string.split(self.name,".")[0]
-        data_file = '_functiondata/' + str(function_name) + '_'+ str(filename) + '.json'
-        with open(data_file, 'w') as output:
-            json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+        directory = '_functiondata/' + str(function_name)
+        self._bot.saveDataFile(data, filename, directory)
 
 
     def hasKeyLockFor(self, entity):

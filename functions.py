@@ -11,11 +11,12 @@ import datetime
 class functions:
     def __init__(self, delegate, irc):
         self.functions_list = []
-        self.loadFunctions()
         self._bot = delegate
         self._irc = irc
         self.global_cooldown = {}
         self.error_tracebacks = []
+        
+        self.loadFunctions()
         pass
 
     def loadFunctions(self):
@@ -30,14 +31,14 @@ class functions:
                 command_func = getattr(function, "function")
                 instance = command_func()
                 instance.name = function_name + ext
-                instance.load()
+                instance.load(self._bot)
                 self.functions_list.append(instance)
 
             self.functions_list = sorted(self.functions_list, key=lambda function: function.priority, reverse=False)
 
     def unloadFunctions(self):
         for func in self.functions_list:
-            func.unload()
+            func.unload(self._bot)
 
     def checkForFunction(self, msg_components, message_type, message_data):
         private_message = (message_type == "QUERY_MSG") or (message_type == "ACTION_MSG")

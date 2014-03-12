@@ -7,11 +7,11 @@ from time import sleep
 from irc import *
 from functions import *
 import ConfigParser
+import json
 
 class bot:
     def __init__(self):
         self._irc = irc(self)
-        self._functions = functions(self,self._irc)
 
         config = ConfigParser.RawConfigParser()
         config.read('config.cfg')
@@ -27,8 +27,15 @@ class bot:
         self.autojoin_channels = filter(None, config.get('bot_config', 'autojoin_channels').split(','))
         self.master_channel = config.get('bot_config', 'master_channel')
 
-        self.authed_hostmasks = ["~McSpider@192.65.241.17","~plastix@192.65.241.17"]
-        self.blacklisted_users = [] #{} #{"~McSpider@192.65.241.17":"0"}
+        self.authed_hostmasks = filter(None, config.get('bot_config', 'master_auth').split(','))
+        auth_data = self.openDataFile("authed","")
+        if type(auth_data) is list:
+            self.authed_hostmasks = auth_data
+
+        self.blacklisted_users = []
+        blacklist_data = self.openDataFile("blacklist","")
+        if type(blacklist_data) is list:
+            self.blacklisted_users = blacklist_data
 
 
         self.debug = config.get('bot_config', 'debug')
@@ -40,9 +47,17 @@ class bot:
         self.reconnect_limit = 5;
         self.disconnected_errno = None;
 
+        self._functions = functions(self, self._irc)
+
         if self.debug:
             attrs = vars(self)
             print ', '.join("%s: %s" % item for item in attrs.items())
+
+    def unload(self):
+        self._functions.unloadFunctions()
+
+        self.saveDataFile(self.authed_hostmasks,"authed","")
+        self.saveDataFile(self.blacklisted_users,"blacklist","")
 
 
     def main(self):
@@ -52,7 +67,8 @@ class bot:
 
         self._irc.read()
         self._irc.disconnect()
-        self._functions.unloadFunctions()
+
+        self.unload()
 
         if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
             if (self.disconnected_errno != errno.ECONNRESET):
@@ -91,6 +107,26 @@ class bot:
             self.blacklisted_users.remove(hostmask)
             return True
         return False
+
+    def openDataFile(self, file, directory):
+        data = None
+        data_file = directory + '_'+ str(file) + '.json'
+        try:
+            with open(data_file, 'r') as input:
+                data = json.load(input)
+            return data
+        except IOError:
+            print color.red + "Data file not found: " + color.clear + data_file
+            with open(data_file, 'w') as output:
+                json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+
+        return data
+
+    def saveDataFile(self, data, file, directory):
+        data_file = directory + '_'+ str(file) + '.json'
+        with open(data_file, 'w') as output:
+            json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+
 
     def notAllowedMessage(self,user,recipient):
         self._irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
