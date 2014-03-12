@@ -23,7 +23,9 @@ class function(function_template):
                     if "command" in func.type:
                         bot._irc.sendMSG("Commands: %s" % (prettyListString(func.commands," & ")), msg_data["sender"])
                     if not func.help_string == None:
-                        bot._irc.sendMSG(func.help_string, msg_data["sender"])
+                        help_string_lines = string.split(func.help_string,"|.")
+                        for line in help_string_lines:
+                            bot._irc.sendMSG(line, msg_data["sender"])
                     return True
         else:
             bot._irc.sendMSG("Trigger the bot with: \"%s\" Short trigger: \"%s%s%s\"" % (prettyListString(bot.triggers," or ",color.irc_green), color.irc_green, bot.short_trigger, color.irc_clear), msg_data["sender"])
