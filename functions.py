@@ -47,11 +47,12 @@ class functions:
         # Sender status/permissions check
         if public_message or private_message:
             sender_full_hostmask = message_data["nick"] + "!" + message_data["username"] + "@" + message_data["hostmask"]
-            if self._bot.hostmaskBlacklisted(sender_full_hostmask):
+            blacklist_match = self._bot.hostmaskBlacklisted(sender_full_hostmask)
+            if blacklist_match:
                 if not self._bot.isUserAuthed(sender_full_hostmask):
-                    print color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + sender_full_hostmask
+                    print color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + sender_full_hostmask + color.b_red + " matches: " + color.clear + blacklist_match
                     return
-                else: self._irc.sendMSG("Authed user blacklist match: %s (Verify?)" % sender_full_hostmask, self._bot.master_channel)
+                else: self._irc.sendMSG("Authed user blacklist match: %s matches: %s (Verify?)" % sender_full_hostmask, blacklist_match, self._bot.master_channel)
 
             # Global same sender message cooldown
             msg_sender = message_data["nick"]

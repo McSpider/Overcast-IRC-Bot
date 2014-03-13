@@ -84,16 +84,20 @@ class bot:
         self._functions.checkForFunction(msgComponents, messageType, messageData)
 
     def isUserAuthed(self,hostmask):
-        hostmask = string.split(hostmask,"!")[1]
         for mask in self.authed_hostmasks:
-            if re.match(".*%s.*" % mask, hostmask, re.IGNORECASE):
+            regex_mask = self.simplifiedMatcherToRegex(mask)
+            if re.match("^%s$" % regex_mask, hostmask, re.IGNORECASE):
                 return True
         return False
 
+    # Checks if a IRC hostmask is blacklisted
+    # - If a match is found the hostmask matcher is returned
+    # - If no match is found returns False
     def hostmaskBlacklisted(self,hostmask):
         for mask in self.blacklisted_users:
-            if re.match(".*%s.*" % mask, hostmask, re.IGNORECASE):
-                return True
+            regex_mask = self.simplifiedMatcherToRegex(mask)
+            if re.match("^%s$" % regex_mask, hostmask, re.IGNORECASE):
+                return mask
         return False
 
     def addBlacklistedHostmask(self,hostmask):
@@ -107,6 +111,13 @@ class bot:
             self.blacklisted_users.remove(hostmask)
             return True
         return False
+
+    # Escapes and converts a simplified matcher string to valid regex.
+    # - Currently only supports * as a wildcard
+    def simplifiedMatcherToRegex(self, mask):
+        regex_mask = re.escape(mask)
+        regex_mask = regex_mask.replace("\*",".*")
+        return regex_mask
 
     def openDataFile(self, file, directory):
         data = None
