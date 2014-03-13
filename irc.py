@@ -20,6 +20,8 @@ class irc:
         self.nick = None
         self.realname = None
 
+        self.current_hostmask = ""
+
         self.server = None
         self.server_port = None
 
@@ -45,6 +47,9 @@ class irc:
         self._socket.connect((server, port))
 
     def didJoinServer(self):
+        # Send a WHOIS request for the bot to set self.current_hostmask
+        # - While current_hostmask is not set the messages sent with sendMSG, sendNoticeMSG & sendActionMSG
+        # - will not be split into lines properly and data may be lost
         self.sendRaw('WHOIS %s\r\n' % self.nick)
         for channel in self._bot.autojoin_channels:
             self._channels.join(channel)
@@ -216,7 +221,11 @@ class irc:
             else:
                 print color.red + 'No password specified, not authenticating.' + color.clear
 
-        if (message_type == "MODECHANGE_NOTICE"):
+        if message_type == "WHOISUSER":
+            if msg_components[2] == self.nick:
+                self.current_hostmask = msg_components[3] + "!" + msg_components[4] + "@" + msg_components[5]
+
+        if message_type == "MODECHANGE_NOTICE":
             if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
                 print color.bold + "Overcast IRC Bot - Connected to IRC server\n" + color.clear
                 self.didJoinServer()
@@ -310,35 +319,50 @@ class irc:
 
     def sendRaw(self, message):
         #print color.blue + 'Sending raw string: ' + color.clear + message
-        if len(message) > 512:
-            print color.blue + 'Send Raw Warning: Message to long, trimming to 512 chars. (length %s)' % len(message) + color.clear + message
-            message = message[:510] + "\r\n"
-        
         self._messages_queue.append(message)
 
+    # Sends a PRIVMSG message split into lines equal to or less than 512 characters
+    # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
         print color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         
-        message = "PRIVMSG %s :%s\r\n" % (recipient, message)
-        self.sendRaw(message)
+        msg_content_len = 512 - len(": %s PRIVMSG %s :\r\n" % (self.current_hostmask, recipient))
+        message_lines = textwrap.wrap(message, msg_content_len)
 
+        for line in message_lines:
+            message_to_send = "PRIVMSG %s :%s\r\n" % (recipient, line)
+            self.sendRaw(message_to_send)
+
+    # Sends a NOTICE message split into lines equal to or less than 512 characters
+    # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendNoticeMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Notice Error: No message recipient specified! ' + color.clear
         print color.blue + '@ Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         
-        message = "NOTICE %s :%s\r\n" % (recipient, message)
-        self.sendRaw(message)
+        msg_content_len = 512 - len(": %s NOTICE %s :\r\n" % (self.current_hostmask, recipient))
+        message_lines = textwrap.wrap(message, msg_content_len)
 
+        for line in message_lines:
+            message_to_send = "NOTICE %s :%s\r\n" % (recipient, line)
+            self.sendRaw(message_to_send)
+
+    # Sends a ACTION message split into lines equal to or less than 512 characters
+    # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendActionMSG(self, message, recipient):
         if recipient == None:
             print color.red + 'Send Action Error: No message recipient specified! ' + color.clear
         print color.blue + '@ Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
         
-        message = "PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, message, 1)
-        self.sendRaw(message)
+        msg_content_len = 512 - len(": %s PRIVMSG %s :%cACTION %c\r\n" % (self.current_hostmask, recipient, 1, 1))
+        message_lines = textwrap.wrap(message, msg_content_len)
+
+        for line in message_lines:
+            message_to_send = "PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, line, 1)
+            self.sendRaw(message_to_send)
+
 
     def sendPingReply(self, server):
         print color.blue + 'Sending ping reply: ' + color.clear + server
