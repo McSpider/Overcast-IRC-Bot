@@ -17,6 +17,7 @@ class color():
     cyan = '\033[0;36m'
     b_cyan = '\033[1;36m'
     clear = '\033[0m'
+    bold = '\033[1m'
 
     irc_boldwhite = '\x03' + '00'
     irc_black = '\x03' + '01'

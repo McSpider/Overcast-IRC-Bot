@@ -216,7 +216,7 @@ class irc:
 
         if (message_type == "MODECHANGE_NOTICE"):
             if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
-                print color.b_cyan + "Overcast IRC Bot - Connected to IRC server\n" + color.clear
+                print color.bold + "Overcast IRC Bot - Connected to IRC server\n" + color.clear
                 self.didJoinServer()
 
             if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
@@ -288,7 +288,7 @@ class irc:
         self._socket.close()
 
     def quit(self,message="And the sun shines once again."):
-        print color.b_cyan + 'Overcast IRC Bot - Quitting "%s"\n' % message.encode('utf-8') + color.clear
+        print color.bold + 'Overcast IRC Bot - Quitting with message: "%s"\n' % message.encode('utf-8') + color.clear
         self._bot.intentional_disconnect = True;
         self.sendRaw("QUIT :%s \r\n" % message)
 

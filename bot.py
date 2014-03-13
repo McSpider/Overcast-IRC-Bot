@@ -61,7 +61,7 @@ class bot:
 
 
     def main(self):
-        print color.b_cyan + "Overcast IRC Bot - Hi! \n" + color.clear
+        print color.bold + "Overcast IRC Bot - Hi! \n" + color.clear
         self._irc.connectToServer(self.server,self.server_port)
         self._irc.authUser(self.ident,self.nick,self.realname,self.password)
 
@@ -145,7 +145,7 @@ try:
             trace = traceback.format_exc()
             print color.red + trace + color.clear
     
-    print color.b_cyan + "\nOvercast IRC Bot - Shutdown, have a nice day." + color.clear
+    print color.bold + "\nOvercast IRC Bot - Shutdown, have a nice day." + color.clear
 
 except KeyboardInterrupt:
     pass
