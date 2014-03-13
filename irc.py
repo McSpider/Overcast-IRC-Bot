@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import socket, threading
 import traceback
-import string, re
+import string, textwrap, re
 import datetime
 import select
 
@@ -43,9 +43,14 @@ class irc:
         self.server = server
         self.server_port = port
         self._socket.connect((server, port))
-    
 
-    def getMessageType(self,msg):
+    def didJoinServer(self):
+        self.sendRaw('WHOIS %s\r\n' % self.nick)
+        for channel in self._bot.autojoin_channels:
+            self._channels.join(channel)
+
+
+    def getMessageType(self, msg):
         # Add the ascii character 1 to the regex using %c
         if re.match("^:.*? PRIVMSG (&|#|\+|!).* :%cACTION .*%c$" % (1,1), msg):
             return "CHANNEL_ACTION_MSG"
@@ -75,8 +80,62 @@ class irc:
             return "PART_NOTICE"
         elif re.match("^:.*? MODE .* .*$", msg):
             return "MODECHANGE_NOTICE"
+        elif re.match("^:.*? 001 .*? :.*$", msg):
+            return "WELCOME"
+        elif re.match("^:.*? 002 .*? :.*$", msg):
+            return "YOURHOST"
+        elif re.match("^:.*? 003 .*? :.*$", msg):
+            return "CREATED"
+        elif re.match("^:.*? 004 .*$", msg):
+            return "MYINFO"
+        elif re.match("^:.*? 005 .*? :Try server .*, port .*$", msg):
+            return "BOUNCE"
+        elif re.match("^:.*? 005 .*? :.*$", msg):
+            return "PROTO"
+        
+        elif re.match("^:.*? 251 .* :.*$", msg):
+            return "LUSERCLIENT"
+        elif re.match("^:.*? 252 .*? [0-9]+ :.*$", msg):
+            return "LUSEROP"
+        elif re.match("^:.*? 253 .*? [0-9]+ :.*$", msg):
+            return "LUSERUNKNOWN"
+        elif re.match("^:.*? 254 .*? [0-9]+ :.*$", msg):
+            return "LUSERCHANNELS"
+        elif re.match("^:.*? 255 .* :.*$", msg):
+            return "LUSERME"
+
+        elif re.match("^:.*? 265 .* :.*$", msg):
+            return "LLOCALUSERS"
+        elif re.match("^:.*? 266 .* :.*$", msg):
+            return "LGLOBALUSERS"
+        elif re.match("^:.*? 250 .* :.*$", msg):
+            return "STATSDLINE"
+
+        elif re.match("^:.*? 375 .* :.*$", msg):
+            return "MOTDSTART"
+        elif re.match("^:.*? 372 .* :.*$", msg):
+            return "MOTD"
+        elif re.match("^:.*? 376 .* :.*$", msg):
+            return "ENDOFMOTD"
+
+        elif re.match("^:.*? 311 .* \* :.*$", msg):
+            return "WHOISUSER"
+        elif re.match("^:.*? 312 .* :.*$", msg):
+            return "WHOISSERVER"
+        elif re.match("^:.*? 313 .* :.*$", msg):
+            return "WHOISOPERATOR"
+        elif re.match("^:.*? 317 .* :.*$", msg):
+            return "WHOISIDLE"
+        elif re.match("^:.*? 318 .* :.*$", msg):
+            return "ENDOFWHOIS"
+        elif re.match("^:.*? 319 .*? :.*$", msg):
+            return "WHOISCHANNELS"
+
         elif re.match("^:.*? 353 .*? :.*$", msg):
             return "NAMES_LIST"
+        elif re.match("^:.*? 366 .*? :.*$", msg):
+            return "NAMES_LIST_END"
+
         elif re.match("^:\S*? QUIT :.*$", msg):
             return "QUIT_NOTICE"
         elif re.match("^PING.*?$", msg):
@@ -134,16 +193,18 @@ class irc:
         msg = string.rstrip(msg)
         message_type = self.getMessageType(msg)
         message_data = self.getMessageData(msg,message_type)
-        if self._bot.debug: print color.cyan + str(self.last_activity) + " " + color.green + message_type + " " + color.clear + repr(msg)
+        if self._bot.debug: print color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg)
         else: print msg
         
         msg_components = string.split(msg)
-        if re.match("^.* 366 %s .*:End of /NAMES.*$" % re.escape(self.nick), msg):
+
+        if message_type == "NAMES_LIST_END" and re.match("^:.* 366 %s .*:End of /NAMES.*$" % re.escape(self.nick), msg):
             self._channels.joinedTo(msg_components[3])
-        if (message_type == "KICK_NOTICE") and re.match("^.*%s.*$" % re.escape(self.nick), msg):
+
+        if message_type == "KICK_NOTICE" and re.match("^.*%s.*$" % re.escape(self.nick), msg):
             self._channels.kickedFrom(msg_components[2])
 
-        if (message_type == "PING") and len(msg_components) == 2:
+        if message_type == "PING" and len(msg_components) == 2:
             self.sendPingReply(msg_components[1])
 
         if message_type == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
@@ -155,9 +216,8 @@ class irc:
 
         if (message_type == "MODECHANGE_NOTICE"):
             if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
-                print color.b_cyan + "Overcast IRC Bot - Connected to irc server\n" + color.clear
-                for channel in self._bot.autojoin_channels:
-                    self._channels.join(channel)
+                print color.b_cyan + "Overcast IRC Bot - Connected to IRC server\n" + color.clear
+                self.didJoinServer()
 
             if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
