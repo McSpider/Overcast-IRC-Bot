@@ -108,6 +108,8 @@ class irc:
             return "LLOCALUSERS"
         elif re.match("^:.*? 266 .* :.*$", msg):
             return "LGLOBALUSERS"
+        elif re.match("^:.*? 250 .* :Highest connection count:.*$", msg):
+            return "STATSCONN"
         elif re.match("^:.*? 250 .* :.*$", msg):
             return "STATSDLINE"
 
