@@ -7,6 +7,9 @@ import importlib
 from utils import *
 import datetime
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class functions:
     def __init__(self, delegate, irc):
@@ -16,6 +19,12 @@ class functions:
         self.global_cooldown = {}
         self.error_tracebacks = []
         
+        # Make sure the function data directory exists and if not, create it
+        function_data_dir = os.path.dirname('./_functiondata/')
+        if not os.path.exists(function_data_dir):
+            os.makedirs(function_data_dir)
+            log.warning(color.red + "Function data directory not found, creating" + color.clear)
+
         self.loadFunctions()
         pass
 
@@ -26,7 +35,6 @@ class functions:
         for f in os.listdir(os.path.abspath("./_functions/")):
             function_name, ext = os.path.splitext(f)
             if ext == ".py":
-                # print color.green + 'Imported module: ' + color.clear + function_name
                 function = __import__(function_name)
                 command_func = getattr(function, "function")
                 instance = command_func()
@@ -50,7 +58,7 @@ class functions:
             blacklist_match = self._bot.hostmaskBlacklisted(sender_full_hostmask)
             if blacklist_match:
                 if not self._bot.isUserAuthed(sender_full_hostmask):
-                    print color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + sender_full_hostmask + color.b_red + " matches: " + color.clear + blacklist_match
+                    log.info(color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + sender_full_hostmask + color.b_red + " matches: " + color.clear + blacklist_match)
                     return
                 else: self._irc.sendMSG("Authed user blacklist match: %s matches: %s (Verify?)" % sender_full_hostmask, blacklist_match, self._bot.master_channel)
 
@@ -73,7 +81,7 @@ class functions:
                  self.global_cooldown[msg_sender]["messages"] >= 3 and current_time < cooldown + datetime.timedelta(seconds = 3):
                     self.global_cooldown[msg_sender]["cooldown"] = current_time
                     self.global_cooldown[msg_sender]["messages"] += 1
-                    print color.b_red + "Ignoring possible flood message from: " + color.clear + msg_sender
+                    log.info(color.b_red + "Ignoring possible flood message from: " + color.clear + msg_sender)
                     return
                 
                 # Reset cooldown if the user hasn't sent a message in the last 5 seconds
@@ -89,7 +97,7 @@ class functions:
 
             if public_message and self._irc._channels.isConnectedTo(message_recipient):
                 if self._irc._channels.isIgnoring(message_recipient):
-                    print color.b_red + "Ignoring message from ignored channel: " + color.clear + message_recipient
+                    log.info(color.b_red + "Ignoring message from ignored channel: " + color.clear + message_recipient)
                     return
 
             target = message_recipient
@@ -104,7 +112,7 @@ class functions:
             for func in self.functions_list:
                 disabled = self.isFunctionDisabled(func)
                 if "key" in func.type and func.hasKeyLockFor(target):
-                    print color.cyan + "Main function lock active" + color.clear
+                    log.info(color.cyan + "Main function lock active" + color.clear)
                     func_exectuted = self.runFunction(func, msg_data, "key")
                     if func_exectuted:
                         return
@@ -154,10 +162,10 @@ class functions:
             function_executed = func.main(self._bot, message_data, type)
             if function_executed and func.blocking:
                 func.run_count = func.run_count + 1
-                print color.blue + "Blocking %s function executed: " % type + color.clear + func.function_string
+                log.info(color.blue + "Blocking %s function executed: " % type + color.clear + func.function_string)
             elif function_executed:
                 func.run_count = func.run_count + 1
-                print color.blue + "%s function executed: " % type.capitalize() + color.clear + func.name
+                log.info(color.blue + "%s function executed: " % type.capitalize() + color.clear + func.name)
 
             if function_executed:
                 if not message_data["sender"] in self.global_cooldown:
@@ -175,7 +183,7 @@ class functions:
             self._irc.sendMSG(str(e), self._bot.master_channel)
             self._irc.sendMSG("Triggered by '%s'" % string.join(message_data["message"]), self._bot.master_channel)
 
-            print color.red + trace + color.clear
+            log.error(color.red + trace + color.clear)
 
     def checkForTriggerMatch(self, msg_components, private_message):
         message = msg_components[3:]

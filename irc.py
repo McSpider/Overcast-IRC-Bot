@@ -8,6 +8,9 @@ import select
 from utils import *
 from channels import *
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class irc:
     def __init__(self, delegate):
@@ -41,7 +44,7 @@ class irc:
 
 
     def connectToServer(self, server, port):
-        print color.b_blue + 'Connecting to server: ' + color.clear + server + ':' + str(port)
+        log.info(color.b_blue + 'Connecting to server: ' + color.clear + server + ':' + str(port))
         self.server = server
         self.server_port = port
         self._socket.connect((server, port))
@@ -200,8 +203,8 @@ class irc:
         msg = string.rstrip(msg)
         message_type = self.getMessageType(msg)
         message_data = self.getMessageData(msg,message_type)
-        if self._bot.debug: print color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg)
-        else: print msg
+        if self._bot.debug: log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
+        else: log.info(msg)
         
         msg_components = string.split(msg)
 
@@ -215,11 +218,11 @@ class irc:
             self.sendPingReply(msg_components[1])
 
         if message_type == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
-            print color.purple + 'Identify request recieved.' + color.clear
+            log.info(color.purple + 'Identify request recieved.' + color.clear)
             if self.password:
                 self.sendMSG(('identify %s' % self.password),'NickServ')
             else:
-                print color.red + 'No password specified, not authenticating.' + color.clear
+                log.warning(color.red + 'No password specified, not authenticating.' + color.clear)
 
         if message_type == "WHOISUSER":
             if msg_components[2] == self.nick:
@@ -227,25 +230,25 @@ class irc:
 
         if message_type == "MODECHANGE_NOTICE":
             if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
-                print color.bold + "Overcast IRC Bot - Connected to IRC server\n" + color.clear
+                log.info(color.bold + "Overcast IRC Bot - Connected to IRC server\n" + color.clear)
                 self.didJoinServer()
 
             if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
-                print color.b_purple + "Oped in channel: " + color.clear + channel
+                log.info(color.b_purple + "Oped in channel: " + color.clear + channel)
                 self._channels.flagIn("o",channel,True)
             if re.match("^:.*? MODE .* \-o %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
-                print color.b_purple + "De-Oped in channel: " + color.clear + channel
+                log.info(color.b_purple + "De-Oped in channel: " + color.clear + channel)
                 self._channels.flagIn("o",channel,False)
 
             if re.match("^:.*? MODE .* \+v %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
-                print color.b_purple + "Voiced in channel: " + color.clear + channel
+                log.info(color.b_purple + "Voiced in channel: " + color.clear + channel)
                 self._channels.flagIn("v",channel,True)
             if re.match("^:.*? MODE .* \-v %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
-                print color.b_purple + "De-Voiced in channel: " + color.clear + channel
+                log.info(color.b_purple + "De-Voiced in channel: " + color.clear + channel)
                 self._channels.flagIn("v",channel,False)
 
 
@@ -270,10 +273,10 @@ class irc:
                         readbuffer = readbuffer+readdata.decode('utf-8')
                     except Exception, e:
                         trace = traceback.format_exc()
-                        print color.red + trace + color.clear
+                        log.error(color.red + trace + color.clear)
                 except socket.error as e:
                     trace = traceback.format_exc()
-                    print color.red + trace + color.clear
+                    log.error(color.red + trace + color.clear)
 
                     self._bot.disconnected_errno = e.errno
                     self.read_active = False
@@ -299,14 +302,17 @@ class irc:
         self._socket.close()
 
     def quit(self,message="And the sun shines once again."):
-        print color.bold + 'Overcast IRC Bot - Quitting with message: "%s"\n' % message.encode('utf-8') + color.clear
+        log.info(color.bold + 'Overcast IRC Bot - Quitting with message: "%s"\n' % message.encode('utf-8') + color.clear)
         self._bot.intentional_disconnect = True;
         self.sendRaw("QUIT :%s \r\n" % message)
 
 
     def authUser(self, username, nick, realname, password):
-        print color.blue + 'IRC Login Info: ' + color.clear + username + ' | ' + realname + ' | ' + password 
-        print color.blue + 'IRC Nick: ' + color.clear + nick + '\n'
+        log.info(color.blue + 'IRC Login Info: ' + color.clear + username + ' | ' + realname)
+        log.info(color.blue + 'IRC Nick: ' + color.clear + nick + '\n')
+
+        if not password or len(password) < 1:
+            log.warning(color.red + 'No password specified for authentication.\n' + color.clear)
 
         self.sendRaw('USER %s %s %s \r\n' % (username, " 0 * :", realname))
         self.sendRaw('NICK %s\r\n' % nick)
@@ -325,8 +331,8 @@ class irc:
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendMSG(self, message, recipient):
         if recipient == None:
-            print color.red + 'Send MSG Error: No message recipient specified! ' + color.clear
-        print color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+            log.warning(color.red + 'Send MSG Error: No message recipient specified! ' + color.clear)
+        log.info(color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
         
         msg_content_len = 512 - len(": %s PRIVMSG %s :\r\n" % (self.current_hostmask, recipient))
         message_lines = textwrap.wrap(message, msg_content_len)
@@ -339,8 +345,8 @@ class irc:
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendNoticeMSG(self, message, recipient):
         if recipient == None:
-            print color.red + 'Send Notice Error: No message recipient specified! ' + color.clear
-        print color.blue + '@ Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+            log.warning(color.red + 'Send Notice Error: No message recipient specified! ' + color.clear)
+        log.info(color.blue + '@ Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
         
         msg_content_len = 512 - len(": %s NOTICE %s :\r\n" % (self.current_hostmask, recipient))
         message_lines = textwrap.wrap(message, msg_content_len)
@@ -353,8 +359,8 @@ class irc:
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendActionMSG(self, message, recipient):
         if recipient == None:
-            print color.red + 'Send Action Error: No message recipient specified! ' + color.clear
-        print color.blue + '@ Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient
+            log.warning(color.red + 'Send Action Error: No message recipient specified! ' + color.clear)
+        log.info(color.blue + '@ Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
         
         msg_content_len = 512 - len(": %s PRIVMSG %s :%cACTION %c\r\n" % (self.current_hostmask, recipient, 1, 1))
         message_lines = textwrap.wrap(message, msg_content_len)
@@ -365,7 +371,7 @@ class irc:
 
 
     def sendPingReply(self, server):
-        print color.blue + 'Sending ping reply: ' + color.clear + server
+        log.info(color.blue + 'Sending ping reply: ' + color.clear + server)
 
         message = "PONG %s\r\n" % server
         self.sendRaw(message)
@@ -385,12 +391,12 @@ class irc:
             if self.last_activity < time_now - datetime.timedelta(minutes = 2):
                 self.activity_timeout_count += 1
                 if self.activity_timeout_count > 1:
-                    print color.red + 'Activity timeout. Disconnecting! ' + color.clear
+                    log.warning(color.red + 'Activity timeout. Disconnecting! ' + color.clear)
                     self.read_active = False
                     return
 
-                print color.red + 'No activity in last 2 minutes.' + color.clear
-                print color.blue + 'Forcing activity, sending ping to: ' + color.clear + self.nick
+                log.info(color.red + 'No activity in last 2 minutes.' + color.clear)
+                log.info(color.blue + 'Forcing activity, sending ping to: ' + color.clear + self.nick)
                 self.sendRaw("PING %s\r\n" % self.nick)
             else:
                 self.activity_timeout_count = 0
@@ -404,7 +410,7 @@ class irc:
                 self._socket.send(message.encode('utf-8'))
             except Exception, e:
                 trace = traceback.format_exc()
-                print color.red + trace + color.clear
+                log.error(color.red + trace + color.clear)
 
         threading.Timer(self._messages_queue_send_interval, self._sendQueuedMessages).start()
 

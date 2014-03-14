@@ -1,4 +1,21 @@
 #!/usr/bin/env python
+import logging
+
+
+# Setup logging, probably should use a rotating log file with a size limit
+# - Accepts two logging levels, one for the log file and the other for the console
+def setupLogging(log_level, console_level):
+    logging.basicConfig(level=log_level,
+                        format='%(asctime)s: %(lineno)4d:%(name)-20s %(levelname)+8s: %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S',
+                        filename='bot.log',
+                        filemode='w')
+    c_handler = logging.StreamHandler()
+    c_handler.setLevel(console_level)
+    c_formatter = logging.Formatter('%(name)-20s %(levelname)+8s: %(message)s')
+    c_handler.setFormatter(c_formatter)
+    logging.getLogger('').addHandler(c_handler)
+
 
 def startThread(thread):
     thread.daemon = True
@@ -69,4 +86,7 @@ def timedstr(delta, short = False):
     elif seconds > 1 or (seconds == 0 and hours == 0 and minutes == 0 and days == 0): output += "%i%s " % (seconds, "s" if short else " seconds")
 
     return output
+
+def strFromBool(boolean):
+    return "Yes" if boolean else "No"
 

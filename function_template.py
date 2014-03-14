@@ -7,6 +7,10 @@ import urllib
 from bs4 import BeautifulSoup
 from utils import *
 
+import logging
+log = logging.getLogger(__name__)
+
+
 class function_template(object):
     def __init__(self):
         self.name = None
@@ -49,11 +53,11 @@ class function_template(object):
         self.disabled = None #{disabled_by:"",time:""}
 
     def load(self, bot):
-        print "Function load: " + self.name
+        log.debug("Function load: " + self.name)
         self._bot = bot
 
     def unload(self, bot):
-        print "Function unload: " + self.name
+        log.debug("Function unload: " + self.name)
 
 
     def main(self, bot, msg_data, func_type):
@@ -81,11 +85,11 @@ class function_template(object):
         return False
 
     def addToKeyLock(self, entity):
-        print color.cyan + "Adding " + entity + " to key lock" + color.clear
+        log.info(color.cyan + "Adding " + entity + " to key lock" + color.clear)
         self.key_lock.append(entity)
 
     def removeFromKeyLock(self, entity):
-        print color.cyan + "Removing key lock for " + entity + color.clear
+        log.info(color.cyan + "Removing key lock for " + entity + color.clear)
         self.key_lock.append(entity)
 
 
@@ -155,9 +159,6 @@ def parseTimeDelta(str_input):
         return datetime.timedelta(minutes = value)
 
     return False
-
-def strFromBool(bool):
-    return "Yes" if bool else "No"
 
 def pageFromList(page_list, page_index, page_size):
     start = (page_index - 1) * page_size

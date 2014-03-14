@@ -9,6 +9,11 @@ from functions import *
 import ConfigParser
 import json
 
+
+import logging
+setupLogging(logging.DEBUG,logging.DEBUG)
+log = logging.getLogger('bot')
+
 class bot:
     def __init__(self):
         self._irc = irc(self)
@@ -51,7 +56,7 @@ class bot:
 
         if self.debug:
             attrs = vars(self)
-            print ', '.join("%s: %s" % item for item in attrs.items())
+            log.debug(', '.join("%s: %s" % item for item in attrs.items()) + "\n")
 
     def unload(self):
         self._functions.unloadFunctions()
@@ -61,7 +66,7 @@ class bot:
 
 
     def main(self):
-        print color.bold + "Overcast IRC Bot - Hi! \n" + color.clear
+        log.info(color.bold + "Overcast IRC Bot - Hi! \n" + color.clear)
         self._irc.connectToServer(self.server,self.server_port)
         self._irc.authUser(self.ident,self.nick,self.realname,self.password)
 
@@ -75,7 +80,7 @@ class bot:
                 return 0
 
             self.reconnect_count += 1
-            print color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected!" + color.clear
+            log.info(color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected!" + color.clear)
             return 1
 
         return 0
@@ -127,12 +132,12 @@ class bot:
                 try:
                     data = json.load(input)
                 except Exception, e:
-                    print color.red + "Malformed JSON data file: " + color.clear + data_file
+                    log.error(color.red + "Malformed JSON data file: " + color.clear + data_file)
                     trace = traceback.format_exc()
-                    print color.red + trace + color.clear
+                    log.error(color.red + trace + color.clear)
 
         except IOError:
-            print color.red + "Data file not found: " + color.clear + data_file
+            log.warning(color.red + "Data file not found: " + color.clear + data_file)
             with open(data_file, 'w') as output:
                 json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
 
@@ -155,7 +160,7 @@ class bot:
                 return input.encode('utf-8')
             except Exception, e:
                 trace = traceback.format_exc()
-                print color.red + trace + color.clear
+                log.error(color.red + trace + color.clear)
                 return input
         else:
             return input
@@ -170,7 +175,7 @@ class bot:
                 return input.decode('utf-8')
             except Exception, e:
                 trace = traceback.format_exc()
-                print color.red + trace + color.clear
+                log.error(color.red + trace + color.clear)
                 return input
         else:
             return input
@@ -185,15 +190,15 @@ try:
     status = -1
     while status != 0:
         if status == 1:
-            print color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected, reconnecting. " + color.clear
+            log.error(color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected, reconnecting. " + color.clear)
         _bot = bot()
         try:
             status = _bot.main()
         except Exception, e:
             trace = traceback.format_exc()
-            print color.red + trace + color.clear
+            log.error(color.red + trace + color.clear)
     
-    print color.bold + "\nOvercast IRC Bot - Shutdown, have a nice day." + color.clear
+    log.info(color.bold + "Overcast IRC Bot - Shutdown, have a nice day." + color.clear)
 
 except KeyboardInterrupt:
     pass
