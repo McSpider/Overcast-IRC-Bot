@@ -124,19 +124,56 @@ class bot:
         data_file = directory + '_'+ str(file) + '.json'
         try:
             with open(data_file, 'r') as input:
-                data = json.load(input)
-            return data
+                try:
+                    data = json.load(input)
+                except Exception, e:
+                    print color.red + "Malformed JSON data file: " + color.clear + data_file
+                    trace = traceback.format_exc()
+                    print color.red + trace + color.clear
+
         except IOError:
             print color.red + "Data file not found: " + color.clear + data_file
             with open(data_file, 'w') as output:
                 json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
 
+        data = self.decodeutf8(data)
         return data
 
     def saveDataFile(self, data, file, directory):
+        data = self.encodeutf8(data)
         data_file = directory + '_'+ str(file) + '.json'
         with open(data_file, 'w') as output:
-            json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+            json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '), ensure_ascii=False)
+
+    def encodeutf8(self, input):
+        if isinstance(input, dict):
+            return {self.encodeutf8(key): self.encodeutf8(value) for key, value in input.iteritems()}
+        elif isinstance(input, list):
+            return [self.encodeutf8(element) for element in input]
+        elif isinstance(input, unicode):
+            try:
+                return input.encode('utf-8')
+            except Exception, e:
+                trace = traceback.format_exc()
+                print color.red + trace + color.clear
+                return input
+        else:
+            return input
+
+    def decodeutf8(self, input):
+        if isinstance(input, dict):
+            return {self.decodeutf8(key): self.decodeutf8(value) for key, value in input.iteritems()}
+        elif isinstance(input, list):
+            return [self.decodeutf8(element) for element in input]
+        elif isinstance(input, str):
+            try:
+                return input.decode('utf-8')
+            except Exception, e:
+                trace = traceback.format_exc()
+                print color.red + trace + color.clear
+                return input
+        else:
+            return input
 
 
     def notAllowedMessage(self,user,recipient):
