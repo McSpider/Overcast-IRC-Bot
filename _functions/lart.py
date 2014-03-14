@@ -11,7 +11,9 @@ class function(function_template):
         self.function_string = "Lart users."
         self.help_string = "Credits to jcp/JZBot for the larts file."
 
-        self.larts = loadMessagesFile("./_data/larts.txt")
+    def load(self, bot):
+        function_template.load(self, bot)
+        self.larts = self.loadMessagesFile("larts.txt")
         self.randomness = []
 
         self.cooldown = {}

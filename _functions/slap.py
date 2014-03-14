@@ -12,9 +12,12 @@ class function(function_template):
         self.function_string = "Slap a person."
         self.blocking = True
 
-        self.slaps = loadMessagesFile("./_data/slaps.txt")
+    def load(self, bot):
+        function_template.load(self, bot)
+        self.slaps = self.loadMessagesFile("slaps.txt")
         self.ouch = ["Ouch!","That hurt!","Oww!","Will you stop that!",">_>"]
         self.randomness = []
+
 
     def main(self, bot, msg_data, func_type):
         if (func_type == "natural"):

@@ -65,19 +65,40 @@ class function_template(object):
         irc.sendMSG("Function not setup, still using template: " + function_name, bot.master_channel)
         return True
 
-
-    def loadFunctionDataFile(self, filename):
+    # Load and save function JSON data files
+    # - Files are stored in ./_functiondata/
+    # - The optional default argument specifies the data to create the file with if no file is found
+    # - If None is specified no file will be created (defaults to None)
+    def loadFunctionDataFile(self, filename, default = None):
         function_name = string.split(self.name,".")[0]
         directory = '_functiondata/' + str(function_name)
-        data = self._bot.openDataFile(filename, directory)
+        data = self._bot.openDataFile('_'+ filename, directory, default)
 
         return data
 
     def saveDataToDataFile(self, data, filename):
         function_name = string.split(self.name,".")[0]
         directory = '_functiondata/' + str(function_name)
-        self._bot.saveDataFile(data, filename, directory)
+        self._bot.saveDataFile(data, '_'+ filename, directory)
 
+
+    # Load a file and split it into a list of lines.
+    # - Ignores empty lines and lines commented with a hash (#)
+    def loadMessagesFile(self, filename):
+        filename = './_data/' + filename
+        lines1 = open(filename).read().splitlines()
+        lines2 = [line for line in lines1 if not line.startswith('#')]
+        lines3 = [line for line in lines2 if line]
+
+        return lines3
+
+    # Load and parse a JSON data file
+    # - Returns the files data or None if no data/file is found
+    def loadDataFile(self, filename):
+        directory = '_data/'
+        data = self._bot.openDataFile(filename, directory)
+
+        return data
 
     def hasKeyLockFor(self, entity):
         if entity in self.key_lock:
@@ -106,15 +127,6 @@ def prettyListString(alist, joiner, cc = None, capitalize = False):
             result = result + joiner + alist[-1]
         return result
     elif len(alist) == 1: return alist[0]
-
-# Load a file and split it into a list of lines.
-# - Ignores empty lines and lines commented with a hash (#)
-def loadMessagesFile(file):
-    lines1 = open(file).read().splitlines()
-    lines2 = [line for line in lines1 if not line.startswith('#')]
-    lines3 = [line for line in lines2 if line]
-
-    return lines3
 
 def colorizer(message):
     message = message.replace("&00", color.irc_boldwhite)

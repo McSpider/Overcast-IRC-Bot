@@ -33,12 +33,12 @@ class bot:
         self.master_channel = config.get('bot_config', 'master_channel')
 
         self.authed_hostmasks = filter(None, config.get('bot_config', 'master_auth').split(','))
-        auth_data = self.openDataFile("authed","")
+        auth_data = self.openDataFile("_authed", "", default = [])
         if type(auth_data) is list:
             self.authed_hostmasks = auth_data
 
         self.blacklisted_users = []
-        blacklist_data = self.openDataFile("blacklist","")
+        blacklist_data = self.openDataFile("_blacklist", "", default = [])
         if type(blacklist_data) is list:
             self.blacklisted_users = blacklist_data
 
@@ -61,8 +61,8 @@ class bot:
     def unload(self):
         self._functions.unloadFunctions()
 
-        self.saveDataFile(self.authed_hostmasks,"authed","")
-        self.saveDataFile(self.blacklisted_users,"blacklist","")
+        self.saveDataFile(self.authed_hostmasks,"_authed","")
+        self.saveDataFile(self.blacklisted_users,"_blacklist","")
 
 
     def main(self):
@@ -124,9 +124,13 @@ class bot:
         regex_mask = regex_mask.replace("\*",".*")
         return regex_mask
 
-    def openDataFile(self, file, directory):
+
+    # Open a JSON data file
+    # - The optional default argument specifies the data to create the file with if no file is found
+    # - If None is specified no file will be created (defaults to None)
+    def openDataFile(self, filename, directory, default = None):
         data = None
-        data_file = directory + '_'+ str(file) + '.json'
+        data_file = directory + str(filename) + '.json'
         try:
             with open(data_file, 'r') as input:
                 try:
@@ -137,16 +141,18 @@ class bot:
                     log.error(color.red + trace + color.clear)
 
         except IOError:
-            log.warning(color.red + "Data file not found: " + color.clear + data_file)
-            with open(data_file, 'w') as output:
-                json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '))
+            log.info(color.red + "Data file not found: " + color.clear + data_file)
+            if default != None:
+                with open(data_file, 'w') as output:
+                    json.dump(default, output, sort_keys=True, indent=4, separators=(',', ': '))
 
         data = self.decodeutf8(data)
         return data
 
-    def saveDataFile(self, data, file, directory):
+    # Save a JSON data file
+    def saveDataFile(self, data, filename, directory):
         data = self.encodeutf8(data)
-        data_file = directory + '_'+ str(file) + '.json'
+        data_file = directory + str(filename) + '.json'
         with open(data_file, 'w') as output:
             json.dump(data, output, sort_keys=True, indent=4, separators=(',', ': '), ensure_ascii=False)
 
