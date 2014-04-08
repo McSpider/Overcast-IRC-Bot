@@ -7,20 +7,33 @@ class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.commands = ["status","mcstatus"]
-        self.function_string = "Get the Overcast and minecraft server status."
+        self.function_string = "Get the Overcast and minecraft server status. (uses xpaw.ru/mcstatus)"
+        self.help_string = "Arguments:|.-e Show extended status info, if available."
     
     def main(self, bot, msg_data, func_type):
         show_legacy = False
-        if len(msg_data["message"]) > 1 and re.match("^-l$", msg_data["message"][1]):
-            show_legacy = True
+        show_extended = False
 
-        error = ''
-        r = requests.get("https://oc.tc/play")
+        if len(msg_data["message"]) > 1:
+            for msg_part in msg_data["message"][1:]:
+                if re.match("^-e$", msg_part):
+                    show_extended = True
+
+        self.getOvercastStatus(bot, msg_data)
+        self.getMinecraftStatus(bot, msg_data, show_legacy, show_extended)
+
+
+        return True
+
+
+    def getOvercastStatus(self, bot, msg_data):
+        r = requests.get("https://oc.tc/play", headers = bot.http_header)
         if r.status_code != requests.codes.ok:
             status_string = ""
             if r.status_code == 522:
                 status_string = "Connection Timed Out"
             error = 'oc.tc - Error: &05' + str(r.status_code) + "&c" + status_string
+            bot._irc.sendMSG(error, msg_data["target"])
         else:
             oc_status = ""
             soup = BeautifulSoup(r.text)
@@ -61,48 +74,70 @@ class function(function_template):
                 bot._irc.sendMSG("US Servers Offline: " + prettyListString(us_servers, " & ", cc = color.irc_red), msg_data["target"])
             if len(eu_servers) > 0:
                 bot._irc.sendMSG("EU Servers Offline: " + prettyListString(eu_servers, " & ", cc = color.irc_red), msg_data["target"])
-            ##
-            
 
-        r = requests.get("http://status.mojang.com/check")
+
+    def getMinecraftStatus(self, bot, msg_data, show_legacy, show_extended):
+        try:
+            r = requests.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header)
+        except requests.exceptions.RequestException:
+            raise
+            return False
+
         if r.status_code != requests.codes.ok:
-            error = 'status.mojang.com/check - &05' + str(r.status_code) + "&c"
+            error = 'xpaw.ru/mcstatus - &05' + str(r.status_code) + "&c"
+            bot._irc.sendMSG(error, msg_data["target"])
+            return False
         else:
-            mojang_status_raw = r.json()
-            legacy_items = ["login.minecraft.net"];
-            mojang_status = []
-            legacy_status = []
-            # Move status items to correct list
-            for status in mojang_status_raw:
-                for key in status:
-                    if key in legacy_items:
-                        legacy_status.append(status)
-                    else:
-                        mojang_status.append(status)
+            xpaw_status_raw = r.json()
+            status_string = "xpaw.ru/mcstatus - "
 
-            status_string = self.parseStatus(mojang_status)
+            login_status = xpaw_status_raw["report"]["login"]
+            sessions_status = xpaw_status_raw["report"]["session"]
+            website_status = xpaw_status_raw["report"]["website"]
+            skins_status = xpaw_status_raw["report"]["skins"]
+            realms_status = xpaw_status_raw["report"]["realms"]
+
+            status_string += "login: " + self.colorizeStatusCode(login_status["status"])
+            status_string += ", session: " + self.colorizeStatusCode(sessions_status["status"])
+            status_string += ", website: " + self.colorizeStatusCode(website_status["status"])
+            status_string += ", skins: " + self.colorizeStatusCode(skins_status["status"])
+            status_string += ", realms: " + self.colorizeStatusCode(realms_status["status"])
+
             status_string = colorizer(status_string.rstrip(', '))
             bot._irc.sendMSG("%s" % (status_string), msg_data["target"])
-            
-            if show_legacy:
-                status_string_legacy = self.parseStatus(legacy_status)
-                status_string_legacy = colorizer(status_string.rstrip(', '))
-                bot._irc.sendMSG("Legacy: %s" % (status_string_legacy), msg_data["target"])
 
-
-        if error: bot._irc.sendMSG(colorizer(error), msg_data["target"])
+            if show_extended:
+                login_title = self.colorizeExtendedStatus(login_status)
+                if login_title != None:
+                    bot._irc.sendMSG("Login: %s" % colorizer(login_title), msg_data["target"])
+                session_title = self.colorizeExtendedStatus(sessions_status)
+                if session_title != None:
+                    bot._irc.sendMSG("Session: %s" % colorizer(session_title), msg_data["target"])
+                website_title = self.colorizeExtendedStatus(website_status)
+                if website_title != None:
+                    bot._irc.sendMSG("Website: %s" % colorizer(website_title), msg_data["target"])
+                skins_title = self.colorizeExtendedStatus(skins_status)
+                if skins_title != None:
+                    bot._irc.sendMSG("Skins: %s" % colorizer(skins_title), msg_data["target"])
+                realms_title = self.colorizeExtendedStatus(realms_status)
+                if realms_title != None:
+                    bot._irc.sendMSG("Realms: %s" % colorizer(realms_title), msg_data["target"])
         return True
 
-    def parseStatus(self, status):
-        result = ""
-        for x in status:
-            for key in x:
-                keyvalue = key
-                if key != "minecraft.net":
-                    keyvalue = key.split(".",1)[0]
+    def colorizeStatusCode(self, status):
+        if status == "down":
+            return "&05Offline&c"
+        elif status == "up":
+            return "&03OK&c"
+        elif status == "problem":
+            return "&07Problem&c"
+        return "&07Unknown&c"
 
-                if x[key] == "green":
-                    result = result + keyvalue + " &03OK&c, "
-                else:
-                    result = result + keyvalue + " &05Offline&c, "
-        return result
+    def colorizeExtendedStatus(self, status):
+        if status["status"] == "down":
+            return "&05" + status["title"] + "&c"
+        if status["status"] == "up" and status["title"] != "Online":
+            return "&03" + status["title"] + "&c"
+        if status["status"] == "problem":
+            return "&07" + status["title"] + "&c"
+        return None
