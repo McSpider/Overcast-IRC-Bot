@@ -27,7 +27,7 @@ class function(function_template):
 
 
     def getVideoInfo(self,video_id):
-        r = requests.get("http://vimeo.com/api/v2/video/%s.xml" % video_id)
+        r = requests.get("http://vimeo.com/api/v2/video/%s.xml" % video_id, headers = bot.http_header)
         if r.status_code != requests.codes.ok:
             return 'APIException'
         vimeo_soup = BeautifulSoup(r.text)

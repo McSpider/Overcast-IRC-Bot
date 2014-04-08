@@ -18,7 +18,7 @@ class function(function_template):
             player = msg_data["sender"]
 
         error = ''
-        r = requests.get("http://oc.tc/" + str(player))
+        r = requests.get("http://oc.tc/" + str(player), headers = bot.http_header)
         if r.status_code != requests.codes.ok:
             if r.status_code == 404:
                 error = '404 - User not found'

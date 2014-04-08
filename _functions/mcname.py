@@ -27,7 +27,7 @@ class function(function_template):
 
         for player in players:
             error = ''
-            r = requests.get("https://account.minecraft.net/buy/frame/checkName/" + str(player))
+            r = requests.get("https://account.minecraft.net/buy/frame/checkName/" + str(player), headers = bot.http_header)
             if r.status_code != requests.codes.ok:
                 error = 'Request Exception - Code: ' + str(r.status_code)
             else:

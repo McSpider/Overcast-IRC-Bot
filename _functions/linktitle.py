@@ -32,8 +32,9 @@ class function(function_template):
                         if re.match("i\.imgur\.com/[A-Za-z0-9-/_#\.]+", link, re.IGNORECASE):
                             continue
 
-                        r = requests.get("http://" + link)
+                        r = requests.get("http://" + link, headers = bot.http_header)
                         if r.status_code != requests.codes.ok:
+                            log.debug(r.headers)
                             if r.status_code == 404:
                                 bot._irc.sendMSG(message, bot.master_channel)
                                 bot._irc.sendMSG('404 - Page not found', bot.master_channel)

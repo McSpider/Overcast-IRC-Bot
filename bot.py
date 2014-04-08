@@ -52,6 +52,8 @@ class bot:
         self.reconnect_limit = 5;
         self.disconnected_errno = None;
 
+        agent_str = "Overcast IRC Bot/1.0 (https://github.com/McSpider/Overcast-IRC-Bot)"
+        self.http_header = {'User-Agent': agent_str + ' (' + str(self.server) + " / " + str(self.nick) + ")"}
         self._functions = functions(self, self._irc)
 
         if self.debug:

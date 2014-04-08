@@ -46,7 +46,7 @@ class function(function_template):
             return False
 
     def getVideoInfo(self,video_id):
-        r = requests.get("https://gdata.youtube.com/feeds/api/videos/%s?v=2" % video_id)
+        r = requests.get("https://gdata.youtube.com/feeds/api/videos/%s?v=2" % video_id, headers = bot.http_header)
         if r.status_code != requests.codes.ok:
             return 'APIException'
         youtube_soup = BeautifulSoup(r.text)
