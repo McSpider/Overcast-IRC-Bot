@@ -45,30 +45,33 @@ class function(function_template):
 
         return True
 
+    # Converts minecraft color codes to irc colors
+    # Ambiguous colors (colors that are hard to see on certain backgrounds)
+    # are replaced with the clear color so that a irc client can pick a contrasting color
     def handleMcColors(self, string):
-        string = string.replace("§0", "")
+        string = string.replace("§0", color.irc_clear) # Black
         string = string.replace("§1", color.irc_blue)
         string = string.replace("§2", color.irc_green)
         string = string.replace("§3", color.irc_cyan)
         string = string.replace("§4", color.irc_red)
         string = string.replace("§5", color.irc_violet)
         string = string.replace("§6", color.irc_yellow)
-        string = string.replace("§7", "")
-        string = string.replace("§8", "")
+        string = string.replace("§7", color.irc_clear) # Grey
+        string = string.replace("§8", color.irc_clear) # Dark grey
         string = string.replace("§9", color.irc_blue)
         string = string.replace("§a", color.irc_green)
         string = string.replace("§b", color.irc_cyan)
         string = string.replace("§c", color.irc_red)
         string = string.replace("§d", color.irc_violet)
         string = string.replace("§e", color.irc_yellow)
-        string = string.replace("§f", "")
+        string = string.replace("§f", color.irc_clear) # White
 
         string = string.replace("§k", "")
         string = string.replace("§l", "")
         string = string.replace("§m", "")
         string = string.replace("§n", "")
         string = string.replace("§o", "")
-        string = string.replace("§r", "")
+        string = string.replace("§r", color.irc_clear)
         return string
 
 
