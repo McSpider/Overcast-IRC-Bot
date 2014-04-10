@@ -27,13 +27,21 @@ class function(function_template):
 
 
     def getOvercastStatus(self, bot, msg_data):
-        r = requests.get("https://oc.tc/play", headers = bot.http_header)
+        try:
+            r = requests.get("https://oc.tc/play", headers = bot.http_header, timeout=5)
+        except requests.exceptions.Timeout:
+            bot._irc.sendMSG(colorizer('oc.tc - &05Request Timed Out&c'), msg_data["target"])
+            return False
+        except requests.exceptions.RequestException:
+            raise
+            return False
+
         if r.status_code != requests.codes.ok:
             status_string = ""
             if r.status_code == 522:
                 status_string = "Connection Timed Out"
             error = 'oc.tc - Error: &05' + str(r.status_code) + "&c" + status_string
-            bot._irc.sendMSG(error, msg_data["target"])
+            bot._irc.sendMSG(colorizer(error), msg_data["target"])
         else:
             oc_status = ""
             soup = BeautifulSoup(r.text)
@@ -78,14 +86,17 @@ class function(function_template):
 
     def getMinecraftStatus(self, bot, msg_data, show_legacy, show_extended):
         try:
-            r = requests.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header)
+            r = requests.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header, timeout=5)
+        except requests.exceptions.Timeout:
+            bot._irc.sendMSG(colorizer('xpaw.ru/mcstatus - &05Request Timed Out&c'), msg_data["target"])
+            return False
         except requests.exceptions.RequestException:
             raise
             return False
 
         if r.status_code != requests.codes.ok:
             error = 'xpaw.ru/mcstatus - &05' + str(r.status_code) + "&c"
-            bot._irc.sendMSG(error, msg_data["target"])
+            bot._irc.sendMSG(colorizer(error), msg_data["target"])
             return False
         else:
             xpaw_status_raw = r.json()
