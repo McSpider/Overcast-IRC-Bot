@@ -19,7 +19,7 @@ class function(function_template):
             if youtube_match:
                 for video_id in youtube_match:
                     print "Getting YT Video: " + str(video_id)
-                    video_info = self.getVideoInfo(video_id)
+                    video_info = self.getVideoInfo(bot, video_id)
                     if video_info and not video_info == 'RequestException':
                         bot._irc.sendMSG(video_info, msg_data["target"])
                 return True
@@ -33,7 +33,7 @@ class function(function_template):
                 if youtube_match:
                     for video_id in youtube_match:
                         print "Getting YT Video: " + str(video_id)
-                        video_info = self.getVideoInfo(video_id)
+                        video_info = self.getVideoInfo(bot, video_id)
                         if video_info == 'APIException':
                             bot._irc.sendMSG('Error: Failed to query youtube API', msg_data["target"])
                             return True
@@ -45,7 +45,7 @@ class function(function_template):
                             return True
             return False
 
-    def getVideoInfo(self,video_id):
+    def getVideoInfo(self, bot, video_id):
         r = requests.get("https://gdata.youtube.com/feeds/api/videos/%s?v=2" % video_id, headers = bot.http_header)
         if r.status_code != requests.codes.ok:
             return 'APIException'

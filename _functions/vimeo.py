@@ -18,7 +18,7 @@ class function(function_template):
         if vimeo_match:
             for video_id in vimeo_match:
                 print "Getting vimeo video: " + str(video_id)
-                video_info = self.getVideoInfo(video_id)
+                video_info = self.getVideoInfo(bot, video_id)
                 if video_info and not video_info == 'RequestException':
                     bot._irc.sendMSG(video_info, msg_data["target"])
                     return_val = True
@@ -26,7 +26,7 @@ class function(function_template):
         return return_val
 
 
-    def getVideoInfo(self,video_id):
+    def getVideoInfo(self, bot, video_id):
         r = requests.get("http://vimeo.com/api/v2/video/%s.xml" % video_id, headers = bot.http_header)
         if r.status_code != requests.codes.ok:
             return 'APIException'
