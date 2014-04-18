@@ -17,10 +17,11 @@ def setupLogging(log_level, console_level):
     logging.getLogger('').addHandler(c_handler)
 
 
-def startThread(thread):
-    thread.daemon = True
+def startThread(thread, daemon = True, join = False):
+    thread.daemon = daemon
     thread.start()
-    thread.join()
+    if join == True:
+        thread.join()
 
 class color():
     red = '\033[0;31m'
