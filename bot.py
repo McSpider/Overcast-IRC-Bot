@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import traceback
-import socket
+import socket, errno
 from time import sleep
 
 from irc import *
@@ -78,7 +78,7 @@ class bot:
         self.unload()
 
         if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
-            if (self.disconnected_errno != errno.ECONNRESET):
+            if self.disconnected_errno != errno.ECONNRESET:
                 return 0
 
             self.reconnect_count += 1
