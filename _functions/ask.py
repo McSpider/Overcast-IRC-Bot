@@ -8,6 +8,8 @@ class function(function_template):
         self.commands = ["ask"]
         self.function_string = "Prompt a person to ask the freaking question already."
 
+    def load(self, bot):
+        function_template.load(self, bot)
         # From +Brottweiler in #overcastnetwork
         self.ask_message = "If you have a question, please just ask it. Don't look for staff or topic experts. Don't ask to ask or ask if people are awake or available. Just ask the question to the channel straight out, and wait patiently for a reply."
 
