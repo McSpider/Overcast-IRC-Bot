@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 from function_template import *
-
+import math
 
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.commands = ["function", "func"]
         self.function_string = "Manage functions."
-        self.help_string = "Subcommands: disable, enable & list."
+        self.help_string = "Subcommands:\n&03{t}function disable {function} (duration) &c- Disable the specified function.\n&03{t}function enable {function} &c- Enable the specified function.\n&03{t}function list &c- list all disabled functions."
         self.restricted = True
 
     def main(self, bot, msg_data, func_type):
@@ -24,7 +24,7 @@ class function(function_template):
                         return
 
                 if bot._functions.disableFunction(msg_data["message"][2], timedelta, disabled_by):
-                    bot._irc.sendMSG("Disabled function: %s - For: %s" % (msg_data["message"][2], timedstr(timedelta)), msg_data["target"])
+                    bot._irc.sendMSG(colorizer("Disabled function: &05%s&c for %s" % (msg_data["message"][2], timedstr(timedelta))), msg_data["target"])
                 else:
                     bot._irc.sendMSG("Invalid function name: %s" % msg_data["message"][2], msg_data["target"])
 
@@ -35,11 +35,46 @@ class function(function_template):
                     bot._irc.sendMSG("Invalid function name: %s" % msg_data["message"][2], msg_data["target"])
 
             if msg_data["message"][1] == "list":
-                bot._irc.sendMSG("Functions:", msg_data["sender"])
-                for function in bot._functions.functions_list:
-                    bot._irc.sendMSG("%s%s" % (function.name, (" Disabled" if function.disabled else "")) , msg_data["sender"])
+                authed = bot.isUserAuthed(msg_data["sender_hostmask"])
+                functions_list = []
+                for func in bot._functions.functions_list:
+                    if func.hidden == True:
+                        continue
+                    if func.restricted == True and not authed:
+                        continue
+                    if not bot._functions.isFunctionDisabled(func):
+                        continue
+                    functions_list.append(func)
+
+                if len(functions_list) > 0:
+                    page = 1
+                    page_size = 5
+                    all_pages = False
+                    pages = int(math.ceil(len(functions_list) / float(page_size)))
+
+                    if len(msg_data["message"]) > 2 and re.match("^(-a|[0-9]{1,3})$", msg_data["message"][2]):
+                        if msg_data["message"][2] == "-a":
+                            page_size = len(functions_list);
+                            all_pages = True
+                        else: page = int(msg_data["message"][2])
+
+                    if page > pages:
+                        page = 1
+
+                    pages_info_string = "(Page &05%i&c of &05%i&c) (Use &03-a&c to list all)" % (page, pages)
+                    if all_pages or page == pages: pages_info_string = "(&05%i&c)" % pages
+
+                    bot._irc.sendMSG("Functions: %s" % colorizer(pages_info_string), msg_data["sender"])
+                    for func in pageFromList(functions_list,page,page_size):
+                        disabled = bot._functions.isFunctionDisabled(func)
+                        funct_disabled = colorizer(" &05Disabled for:&c %s" % timedstr(disabled[1],True) if disabled else "")
+                        bot._irc.sendMSG(colorizer(func.name.ljust(20) + funct_disabled), msg_data["sender"])
+                else:
+                    bot._irc.sendMSG("No functions disabled", msg_data["sender"])
+            return True
+
+
         else:
-            bot._irc.sendMSG(self.help_string, msg_data["sender"])
+            bot._irc.sendMSG("Subcommands: disable, enable & list.", msg_data["sender"])
+        return True
 
-
-        return False
