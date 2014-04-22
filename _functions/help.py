@@ -14,19 +14,22 @@ class function(function_template):
         if len(msg_data["message"]) > 1 and not re.match("^(-a|[0-9]{1,3})$", msg_data["message"][1]):
             subcommand = msg_data["message"][1]
             
-            for func in bot._functions.functions_list:
-                if re.match("^%s.*?$" % re.escape(subcommand), func.name, re.IGNORECASE):
-                    bot._irc.sendMSG("Info for function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), msg_data["sender"])
-                    bot._irc.sendMSG("%s" % func.function_string, msg_data["sender"])
-                    bot._irc.sendMSG("Restricted: %s - Type: %s" % (strFromBool(func.restricted), prettyListString(func.type, " & ", capitalize = True)), msg_data["sender"])
-                    
-                    if "command" in func.type:
-                        bot._irc.sendMSG("Commands: %s" % (prettyListString(func.commands," & ")), msg_data["sender"])
-                    if not func.help_string == None:
-                        help_string_lines = string.split(func.help_string,"|.")
-                        for line in help_string_lines:
-                            bot._irc.sendMSG(line, msg_data["sender"])
-                    return True
+            func = bot._functions.getFunctionWithName(subcommand)
+            if func:
+                bot._irc.sendMSG("Info for function: %s%s%s" % (color.irc_blue, func.name, color.irc_clear), msg_data["sender"])
+                bot._irc.sendMSG("%s" % func.function_string, msg_data["sender"])
+                bot._irc.sendMSG("Restricted: %s - Type: %s" % (strFromBool(func.restricted), prettyListString(func.type, " & ", capitalize = True)), msg_data["sender"])
+                
+                if "command" in func.type:
+                    bot._irc.sendMSG("Commands: %s" % (prettyListString(func.commands," & ")), msg_data["sender"])
+                if not func.help_string == None:
+                    help_str = func.help_string.replace("{t}",bot.short_trigger)
+                    help_str = colorizer(help_str)
+                    help_string_lines = string.split(help_str,"\n")
+                    for line in help_string_lines:
+                        bot._irc.sendMSG(line, msg_data["sender"])
+            else:
+                bot._irc.sendMSG("No function found with name: %s" % subcommand, msg_data["target"])
         else:
             bot._irc.sendMSG("Trigger the bot with: \"%s\" Short trigger: \"%s%s%s\"" % (prettyListString(bot.triggers," or ",color.irc_green), color.irc_green, bot.short_trigger, color.irc_clear), msg_data["sender"])
 
@@ -49,10 +52,10 @@ class function(function_template):
             if page > pages:
                 page = 1
 
-            pages_info_string = colorizer("(Page &05%i&c of &05%i&c) (Use &03-a&c to list all)" % (page, pages))
-            if all_pages: pages_info_string = "(&05%i&c Functions)" % page_size
+            pages_info_string = "(Page &05%i&c of &05%i&c) (Use &03-a&c to list all)" % (page, pages)
+            if all_pages or page == pages: pages_info_string = "(&05%i&c)" % pages
 
-            bot._irc.sendMSG("Functions you can trigger: %s" % pages_info_string, msg_data["sender"])
+            bot._irc.sendMSG("Functions you can trigger: %s" % colorizer(pages_info_string), msg_data["sender"])
 
             for func in pageFromList(functions_list,page,page_size):
                 func_type = ""
@@ -72,7 +75,7 @@ class function(function_template):
                 bot._irc.sendMSG((color.irc_white + func_type + color.irc_clear + func.name).ljust(20) + func_string + funct_disabled, msg_data["sender"])
 
             if page == 1 or all_pages:
-                bot._irc.sendMSG("For more info about a specific function use: help {function name}", msg_data["sender"])
+                bot._irc.sendMSG("For more info about a specific function use: %shelp {function name}" % (bot.short_trigger), msg_data["sender"])
             return True
 
         return False

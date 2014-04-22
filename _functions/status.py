@@ -8,7 +8,7 @@ class function(function_template):
         function_template.__init__(self)
         self.commands = ["status","mcstatus"]
         self.function_string = "Get the Overcast and minecraft server status. (uses xpaw.ru/mcstatus)"
-        self.help_string = "Arguments:|.-e Show extended status info, if available."
+        self.help_string = "Arguments:\n-e Show extended status info, if available."
     
     def main(self, bot, msg_data, func_type):
         show_legacy = False
