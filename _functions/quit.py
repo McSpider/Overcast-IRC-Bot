@@ -5,7 +5,7 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.commands = ["quit"]
+        self.commands = ["quit", "stop"]
         self.function_string = "Quit the bot."
         self.restricted = True
         self.priority = 1
