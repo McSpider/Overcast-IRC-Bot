@@ -24,33 +24,37 @@ class function_template(object):
         # All functions should return True if they do anything, e.g. send messages, update data files.
         self.type = ["command"]
 
-        # Specify the functions priority from 100 to 1
+        # Specify the functions priority from 100 to 1, one being the highest priority
         self.priority = 50
 
         # Specify the functions triggerable commands. (Not needed for natural functions.)
         self.commands = []
 
-        # Specify if the function requires auth status, can also be handled manually.
+        # Specify if the function requires auth status, can also be handled manually if individual sub commands need to be restricted.
         self.restricted = False
 
-        # Specify the functions function.
+        # Specify the functions function, this is the description shown in the help list.
         self.function_string = "Function template."
+        # The functions help string, shown when running help on a specific function.
+        # Multiple lines can be separated with the newline (\n) character.
+        # The short trigger can be specified with {t} and will be dynamically replaced when the the help string is shown via the help function.
         self.help_string = None
 
-        # Specify if the function blocks any other functions that come after itself and are triggerable with the same parameters. (Only used with natural and status functions)
+        # Specify if the function blocks any other functions that come after itself and are triggerable with the same parameters.
+        # Not used with KEY type functions since they are always blocking.
         self.blocking = True
 
-        # To be used internally by functions, may be reset to 0 for spam filters, etc. However it is recommended that you use your own variable in that case.
+        # The functions run count, incremented every time the function is triggered.
         self.run_count = 0
 
         # Used when the function is of type KEY to check if the lock is currently active.
         self.key_lock = []
 
-        # Used to hide the function from the help list
+        # Used to hide the function from the help list.
         self.hidden = False
 
-        # Disable a function for specific period of time
-        self.disabled = None #{disabled_by:"",time:""}
+        # Disable a function for specific period of time.
+        self.disabled = None #{disabled_by:"", time:""}
 
     def load(self, bot):
         log.debug("Function load: " + self.name)
