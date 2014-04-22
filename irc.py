@@ -211,8 +211,11 @@ class irc:
         if message_type == "NAMES_LIST_END" and re.match("^:.* 366 %s .*:End of /NAMES.*$" % re.escape(self.nick), msg):
             self._channels.joinedTo(msg_components[3])
 
-        if message_type == "KICK_NOTICE" and re.match("^.*%s.*$" % re.escape(self.nick), msg):
+        if message_type == "KICK_NOTICE" and re.match("^:%s!.*$" % re.escape(self.nick), msg):
             self._channels.kickedFrom(msg_components[2])
+
+        if message_type == "PART_NOTICE" and re.match("^:%s!.*$" % re.escape(self.nick), msg):
+            self._channels.partedFrom(msg_components[2])
 
         if message_type == "PING" and len(msg_components) == 2:
             self.sendPingReply(msg_components[1])
