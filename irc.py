@@ -333,6 +333,7 @@ class irc:
     # Sends a PRIVMSG message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendMSG(self, message, recipient):
+        message = message.replace("\n"," ").replace("\r","")
         if recipient == None:
             log.warning(color.red + 'Send MSG Error: No message recipient specified! ' + color.clear)
         log.info(color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
@@ -347,6 +348,7 @@ class irc:
     # Sends a NOTICE message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendNoticeMSG(self, message, recipient):
+        message = message.replace("\n"," ").replace("\r","")
         if recipient == None:
             log.warning(color.red + 'Send Notice Error: No message recipient specified! ' + color.clear)
         log.info(color.blue + '@ Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
@@ -361,6 +363,7 @@ class irc:
     # Sends a ACTION message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendActionMSG(self, message, recipient):
+        message = message.replace("\n"," ").replace("\r","")
         if recipient == None:
             log.warning(color.red + 'Send Action Error: No message recipient specified! ' + color.clear)
         log.info(color.blue + '@ Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
