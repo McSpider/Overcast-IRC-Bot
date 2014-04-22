@@ -157,15 +157,15 @@ class functions:
                     if func_exectuted and func.blocking:
                         return
 
-    def runFunction(self, func, message_data, type):
+    def runFunction(self, func, message_data, func_type):
         try:
-            function_executed = func.main(self._bot, message_data, type)
+            function_executed = func.main(self._bot, message_data, func_type)
             if function_executed and func.blocking:
                 func.run_count = func.run_count + 1
-                log.info(color.blue + "Blocking %s function executed: " % type + color.clear + func.function_string)
+                log.info(color.blue + "Blocking %s function executed: " % func_type + color.clear + func.name)
             elif function_executed:
                 func.run_count = func.run_count + 1
-                log.info(color.blue + "%s function executed: " % type.capitalize() + color.clear + func.name)
+                log.info(color.blue + "%s function executed: " % func_type.capitalize() + color.clear + func.name)
 
             if function_executed:
                 if not message_data["sender"] in self.global_cooldown:
