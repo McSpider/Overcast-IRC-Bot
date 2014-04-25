@@ -20,24 +20,15 @@ class function(function_template):
               raise
             
             if data:
-                data["players"]["max"]
-                data["players"]["online"]
-
-                data["version"]["protocol"]
-                data["version"]["name"]
-
-                data["ping"]
-                data["description"]
-
-                ping_status = "Online Players: " + str(data["players"]["online"]) + "/" + str(data["players"]["max"])
-                ping_status = ping_status + " - Ping: " + str(data["ping"]) + "ms"
+                ping_status = "Online Players: " + str(data["players"]["online"]).encode('utf-8') + "/" + str(data["players"]["max"]).encode('utf-8')
+                ping_status = ping_status + " - Ping: " + str(data["ping"]).encode('utf-8') + "ms"
                 bot._irc.sendMSG("%s" % (ping_status), msg_data["target"])
 
                 motd = string.split(data["description"].encode('utf-8'), "\n")
 
                 prev_line_color = ""
                 for line in motd:
-                    bot._irc.sendMSG("%s%s" % (self.handleMcColors(prev_line_color).decode('utf-8'), self.handleMcColors(line).decode('utf-8')), msg_data["target"])
+                    bot._irc.sendMSG("%s%s" % (self.handleMcColors(prev_line_color), self.handleMcColors(line)), msg_data["target"])
                     prev_line_color = re.findall("§[0-9a-fk-r]", line, re.IGNORECASE)[-1]
         else:
             bot._irc.sendMSG("Please provide a minecraft server address to ping.", msg_data["target"])

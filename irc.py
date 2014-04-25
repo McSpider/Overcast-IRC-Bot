@@ -273,7 +273,7 @@ class irc:
                 try:
                     readdata = self._socket.recv(512)
                     try:
-                        readbuffer = readbuffer+readdata.decode('utf-8')
+                        readbuffer = readbuffer + readdata
                     except Exception, e:
                         trace = traceback.format_exc()
                         log.error(color.red + trace + color.clear)
@@ -305,7 +305,7 @@ class irc:
         self._socket.close()
 
     def quit(self,message="And the sun shines once again."):
-        log.info(color.bold + 'Overcast IRC Bot - Quitting with message: "%s"\n' % message.encode('utf-8') + color.clear)
+        log.info(color.bold + 'Overcast IRC Bot - Quitting with message: "%s"\n' % message + color.clear)
         self._bot.intentional_disconnect = True;
         self.sendRaw("QUIT :%s \r\n" % message)
 
@@ -413,7 +413,7 @@ class irc:
         if len(self._messages_queue) > 0:
             message = self._messages_queue.pop(0)
             try:
-                self._socket.send(message.encode('utf-8'))
+                self._socket.send(message)
             except Exception, e:
                 trace = traceback.format_exc()
                 log.error(color.red + trace + color.clear)

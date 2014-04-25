@@ -48,7 +48,7 @@ class function(function_template):
                             match_found = True
                             page_title = soup.find('title').get_text().strip()
 
-                            page_title = "%s" % (page_title)
+                            page_title = page_title.encode('utf-8')
 
                             # Ignore oc.tc 404 pages
                             if key == "Overcast":
