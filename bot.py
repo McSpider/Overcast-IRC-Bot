@@ -16,7 +16,7 @@ log = logging.getLogger('bot')
 
 class bot:
     def __init__(self):
-        self._irc = irc(self)
+        self.irc = irc(self)
 
         config = ConfigParser.RawConfigParser()
         config.read('config.cfg')
@@ -54,14 +54,14 @@ class bot:
 
         agent_str = "Overcast IRC Bot/1.0 (https://github.com/McSpider/Overcast-IRC-Bot)"
         self.http_header = {'User-Agent': agent_str + ' (' + str(self.server) + " / " + str(self.nick) + ")"}
-        self._functions = functions(self, self._irc)
+        self.functions = functions(self, self.irc)
 
         if self.debug:
             attrs = vars(self)
             log.debug(', '.join("%s: %s" % item for item in attrs.items()) + "\n")
 
     def unload(self):
-        self._functions.unloadFunctions()
+        self.functions.unloadFunctions()
 
         self.saveDataFile(self.authed_hostmasks,"_authed","")
         self.saveDataFile(self.blacklisted_users,"_blacklist","")
@@ -69,11 +69,11 @@ class bot:
 
     def main(self):
         log.info(color.bold + "Overcast IRC Bot - Hi! \n" + color.clear)
-        self._irc.connectToServer(self.server,self.server_port)
-        self._irc.authUser(self.ident,self.nick,self.realname,self.password)
+        self.irc.connectToServer(self.server,self.server_port)
+        self.irc.authUser(self.ident,self.nick,self.realname,self.password)
 
-        self._irc.read()
-        self._irc.disconnect()
+        self.irc.read()
+        self.irc.disconnect()
 
         self.unload()
 
@@ -88,7 +88,7 @@ class bot:
         return 0
 
     def parseMessage(self, msgComponents, messageType, messageData):
-        self._functions.checkForFunction(msgComponents, messageType, messageData)
+        self.functions.checkForFunction(msgComponents, messageType, messageData)
 
     def isUserAuthed(self,hostmask):
         for mask in self.authed_hostmasks:
@@ -190,7 +190,7 @@ class bot:
 
 
     def notAllowedMessage(self,user,recipient):
-        self._irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
+        self.irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
 
 
 # Start the bot

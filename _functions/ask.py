@@ -16,7 +16,7 @@ class function(function_template):
     def main(self, bot, msg_data, func_type):
         if len(msg_data["message"]) > 1:
             argument = msg_data["message"][1]
-            bot._irc.sendMSG("%s: %s" % (argument, self.ask_message), msg_data["target"])
+            bot.irc.sendMSG("%s: %s" % (argument, self.ask_message), msg_data["target"])
         else:
-            bot._irc.sendMSG(self.ask_message, msg_data["target"])
+            bot.irc.sendMSG(self.ask_message, msg_data["target"])
         return True

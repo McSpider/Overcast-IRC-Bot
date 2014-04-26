@@ -27,9 +27,9 @@ class function(function_template):
         else:
             soup = BeautifulSoup(r.text)
             if soup.find(text=["false"]):
-                bot._irc.sendMSG("%s has not purchased minecraft yet." % (player), msg_data["target"])
+                bot.irc.sendMSG("%s has not purchased minecraft yet." % (player), msg_data["target"])
             else:
-                bot._irc.sendMSG("%s has purchased minecraft." % (player), msg_data["target"])
+                bot.irc.sendMSG("%s has purchased minecraft." % (player), msg_data["target"])
 
-        if error: bot._irc.sendMSG(error, msg_data["target"])
+        if error: bot.irc.sendMSG(error, msg_data["target"])
         return True

@@ -21,7 +21,7 @@ class function(function_template):
                     print "Getting YT Video: " + str(video_id)
                     video_info = self.getVideoInfo(bot, video_id)
                     if video_info and not video_info == 'RequestException':
-                        bot._irc.sendMSG(video_info, msg_data["target"])
+                        bot.irc.sendMSG(video_info, msg_data["target"])
                 return True
             return False
 
@@ -35,13 +35,13 @@ class function(function_template):
                         print "Getting YT Video: " + str(video_id)
                         video_info = self.getVideoInfo(bot, video_id)
                         if video_info == 'APIException':
-                            bot._irc.sendMSG('Error: Failed to query youtube API', msg_data["target"])
+                            bot.irc.sendMSG('Error: Failed to query youtube API', msg_data["target"])
                             return True
                         elif video_info == 'RequestException':
-                            bot._irc.sendMSG('Error: Invalid video URL', msg_data["target"])
+                            bot.irc.sendMSG('Error: Invalid video URL', msg_data["target"])
                             return True
                         if video_info:
-                            bot._irc.sendMSG(video_info, msg_data["target"])
+                            bot.irc.sendMSG(video_info, msg_data["target"])
                             return True
             return False
 

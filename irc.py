@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 class irc:
     def __init__(self, delegate):
         self._socket = socket.socket()
-        self._channels = channels(self)
+        self.channels = channels(self)
         self._bot = delegate;
 
         self.ident = None
@@ -55,7 +55,7 @@ class irc:
         # - will not be split into lines properly and data may be lost
         self.sendRaw('WHOIS %s\r\n' % self.nick)
         for channel in self._bot.autojoin_channels:
-            self._channels.join(channel)
+            self.channels.join(channel)
 
 
     def getMessageType(self, msg):
@@ -209,13 +209,13 @@ class irc:
         msg_components = string.split(msg)
 
         if message_type == "NAMES_LIST_END" and re.match("^:.* 366 %s .*:End of /NAMES.*$" % re.escape(self.nick), msg):
-            self._channels.joinedTo(msg_components[3])
+            self.channels.joinedTo(msg_components[3])
 
         if message_type == "KICK_NOTICE" and re.match("^:%s!.*$" % re.escape(self.nick), msg):
-            self._channels.kickedFrom(msg_components[2])
+            self.channels.kickedFrom(msg_components[2])
 
         if message_type == "PART_NOTICE" and re.match("^:%s!.*$" % re.escape(self.nick), msg):
-            self._channels.partedFrom(msg_components[2])
+            self.channels.partedFrom(msg_components[2])
 
         if message_type == "PING" and len(msg_components) == 2:
             self.sendPingReply(msg_components[1])
@@ -224,7 +224,7 @@ class irc:
             irc_chantypes = re.search("CHANTYPES=(\S*)", msg)
             if irc_chantypes:
                 irc_chantypes = irc_chantypes.group(1)
-                self._channels.chantypes = list(irc_chantypes)
+                self.channels.chantypes = list(irc_chantypes)
                 log.debug("IRC channel types: " + color.purple + irc_chantypes + color.clear)
 
             irc_nicklength = re.search("NICKLEN=(\S*)", msg)
@@ -261,20 +261,20 @@ class irc:
             if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "Oped in channel: " + color.clear + channel)
-                self._channels.flagIn("o",channel,True)
+                self.channels.flagIn("o",channel,True)
             if re.match("^:.*? MODE .* \-o %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "De-Oped in channel: " + color.clear + channel)
-                self._channels.flagIn("o",channel,False)
+                self.channels.flagIn("o",channel,False)
 
             if re.match("^:.*? MODE .* \+v %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "Voiced in channel: " + color.clear + channel)
-                self._channels.flagIn("v",channel,True)
+                self.channels.flagIn("v",channel,True)
             if re.match("^:.*? MODE .* \-v %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "De-Voiced in channel: " + color.clear + channel)
-                self._channels.flagIn("v",channel,False)
+                self.channels.flagIn("v",channel,False)
 
 
         self._bot.parseMessage(msg_components, message_type, message_data)

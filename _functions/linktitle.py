@@ -36,11 +36,11 @@ class function(function_template):
                         if r.status_code != requests.codes.ok:
                             log.debug(r.headers)
                             if r.status_code == 404:
-                                bot._irc.sendMSG(message, bot.master_channel)
-                                bot._irc.sendMSG('404 - Page not found', bot.master_channel)
+                                bot.irc.sendMSG(message, bot.master_channel)
+                                bot.irc.sendMSG('404 - Page not found', bot.master_channel)
                             else:
-                                bot._irc.sendMSG(message, bot.master_channel)
-                                bot._irc.sendMSG('Request Exception - Code: %s' % str(r.status_code), bot.master_channel)
+                                bot.irc.sendMSG(message, bot.master_channel)
+                                bot.irc.sendMSG('Request Exception - Code: %s' % str(r.status_code), bot.master_channel)
                             continue
 
                         soup = BeautifulSoup(r.text)
@@ -63,7 +63,7 @@ class function(function_template):
                             # Don't print the same title twice
                             if not page_title in titles:
                                 titles.append(page_title)
-                                bot._irc.sendMSG(page_title, msg_data["target"])
+                                bot.irc.sendMSG(page_title, msg_data["target"])
                     
             return match_found
        

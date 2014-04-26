@@ -20,7 +20,7 @@ class function(function_template):
                 print "Getting vimeo video: " + str(video_id)
                 video_info = self.getVideoInfo(bot, video_id)
                 if video_info and not video_info == 'RequestException':
-                    bot._irc.sendMSG(video_info, msg_data["target"])
+                    bot.irc.sendMSG(video_info, msg_data["target"])
                     return_val = True
         
         return return_val

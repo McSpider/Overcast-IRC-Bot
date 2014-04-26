@@ -23,8 +23,8 @@ class function(function_template):
         if (func_type == "natural"):
             message = string.join(msg_data["message"])
 
-            if re.match("^.*?(slaps|whacks) %s.*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE) or re.match("^.*?gives.*?%s a.*?(slap|whack).*?$" % re.escape(bot._irc.nick), message, re.IGNORECASE):
-                bot._irc.sendMSG(random.choice(self.ouch), msg_data["target"])
+            if re.match("^.*?(slaps|whacks) %s.*?$" % re.escape(bot.irc.nick), message, re.IGNORECASE) or re.match("^.*?gives.*?%s a.*?(slap|whack).*?$" % re.escape(bot.irc.nick), message, re.IGNORECASE):
+                bot.irc.sendMSG(random.choice(self.ouch), msg_data["target"])
                 return True
             return False
 
@@ -40,13 +40,13 @@ class function(function_template):
 
             if len(msg_data["message"]) > 1:
                 argument = msg_data["message"][1]
-                if re.match("^(%s|himself|itself)$" % (bot._irc.nick), argument, re.IGNORECASE):
+                if re.match("^(%s|himself|itself)$" % (bot.irc.nick), argument, re.IGNORECASE):
                     slap = slap.replace("!target!", msg_data["sender"])
                 else:
                     slap = slap.replace("!target!", argument)
-                bot._irc.sendActionMSG(slap, msg_data["target"])
+                bot.irc.sendActionMSG(slap, msg_data["target"])
             else:
                 slap = slap.replace("!target!", msg_data["sender"])
-                bot._irc.sendActionMSG(slap, msg_data["target"])
+                bot.irc.sendActionMSG(slap, msg_data["target"])
             return True
 

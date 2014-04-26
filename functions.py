@@ -95,8 +95,8 @@ class functions:
             message_recipient = msg_components[2]
             msg_sender = message_data["nick"]
 
-            if public_message and self._irc._channels.isConnectedTo(message_recipient):
-                if self._irc._channels.isIgnoring(message_recipient):
+            if public_message and self._irc.channels.isConnectedTo(message_recipient):
+                if self._irc.channels.isIgnoring(message_recipient):
                     log.info(color.b_red + "Ignoring message from ignored channel: " + color.clear + message_recipient)
                     return
 
@@ -119,7 +119,7 @@ class functions:
 
                 if "command" in func.type and len(msg_components) >= 4:
                     # Check if the message has a trigger and a subcommand or just a subcommand if its a PM
-                    if (self._irc._channels.isConnectedTo(message_recipient) or private_message):
+                    if (self._irc.channels.isConnectedTo(message_recipient) or private_message):
                         trigger_match = self.checkForTriggerMatch(msg_components,private_message)
                         if trigger_match:
                             message_command = trigger_match[0].lower()

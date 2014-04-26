@@ -15,10 +15,10 @@ class function(function_template):
             msg = " ".join(msg_data["message"][1:])
             players = msg.strip().split(',')
         else:
-            bot._irc.sendMSG("Please provide a username or comma separated list of usernames", msg_data["target"])
+            bot.irc.sendMSG("Please provide a username or comma separated list of usernames", msg_data["target"])
 
         if len(players) > 10 and not bot.isUserAuthed(msg_data["sender_hostmask"]):
-            bot._irc.sendMSG("Please restrict your query to less that 10 usernames", msg_data["sender"])
+            bot.irc.sendMSG("Please restrict your query to less that 10 usernames", msg_data["sender"])
             return True
 
         recipient = msg_data["target"]
@@ -33,13 +33,13 @@ class function(function_template):
             else:
                 soup = BeautifulSoup(r.text)
                 if soup.find(text=["OK"]):
-                    bot._irc.sendMSG("%s - Username is available" % player, recipient)
+                    bot.irc.sendMSG("%s - Username is available" % player, recipient)
                 elif soup.find(text=["TAKEN"]):
-                    bot._irc.sendMSG("%s - Username has already been taken" % player, recipient)
+                    bot.irc.sendMSG("%s - Username has already been taken" % player, recipient)
                 elif soup.find(text=["invalid characters"]):
-                    bot._irc.sendMSG("%s - Name contains invalid characters. Please stick to letters, numbers and _" % player, recipient)
+                    bot.irc.sendMSG("%s - Name contains invalid characters. Please stick to letters, numbers and _" % player, recipient)
                 else:
-                    bot._irc.sendMSG("%s - %s" % (player, soup.text), recipient)
+                    bot.irc.sendMSG("%s - %s" % (player, soup.text), recipient)
 
-            if error: bot._irc.sendMSG(error, recipient)
+            if error: bot.irc.sendMSG(error, recipient)
         return True

@@ -14,6 +14,6 @@ class function(function_template):
     def main(self, bot, msg_data, func_type):
         if len(msg_data["message"]) > 1:
             argument = " ".join(msg_data["message"][1:])
-            bot._irc.quit("%s" % argument)
-        else: bot._irc.quit("And the sun shines once again.")
+            bot.irc.quit("%s" % argument)
+        else: bot.irc.quit("And the sun shines once again.")
         return True

@@ -58,12 +58,12 @@ class function(function_template):
                 friends_message = colorizer("Friends:&03 %s&c, Joins:&03 %s&c" % (friends, joins))
                 raindrops_message = colorizer("&10Rain&cdrops: %s" % (raindrops))
 
-                bot._irc.sendMSG("%s %s - %s" % (str(player), last_seen, raindrops_message), msg_data["target"])
-                bot._irc.sendMSG(stats_message, msg_data["target"])
-                bot._irc.sendMSG(objectives_message, msg_data["target"])
-                bot._irc.sendMSG(friends_message, msg_data["target"])
+                bot.irc.sendMSG("%s %s - %s" % (str(player), last_seen, raindrops_message), msg_data["target"])
+                bot.irc.sendMSG(stats_message, msg_data["target"])
+                bot.irc.sendMSG(objectives_message, msg_data["target"])
+                bot.irc.sendMSG(friends_message, msg_data["target"])
             else:
                 error = 'Invalid user.'
 
-        if error: bot._irc.sendMSG(error, msg_data["target"])
+        if error: bot.irc.sendMSG(error, msg_data["target"])
         return True

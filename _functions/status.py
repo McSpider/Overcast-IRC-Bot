@@ -30,7 +30,7 @@ class function(function_template):
         try:
             r = requests.get("https://oc.tc/play", headers = bot.http_header, timeout=5)
         except requests.exceptions.Timeout:
-            bot._irc.sendMSG(colorizer('oc.tc - &05Request Timed Out&c'), msg_data["target"])
+            bot.irc.sendMSG(colorizer('oc.tc - &05Request Timed Out&c'), msg_data["target"])
             return False
         except requests.exceptions.RequestException:
             raise
@@ -41,7 +41,7 @@ class function(function_template):
             if r.status_code == 522:
                 status_string = "Connection Timed Out"
             error = 'oc.tc - Error: &05' + str(r.status_code) + "&c" + status_string
-            bot._irc.sendMSG(colorizer(error), msg_data["target"])
+            bot.irc.sendMSG(colorizer(error), msg_data["target"])
         else:
             oc_status = ""
             soup = BeautifulSoup(r.text)
@@ -58,7 +58,7 @@ class function(function_template):
 
             if len(players_online) > 0:
                 oc_status = oc_status + " - Online Players: " + players_online
-            bot._irc.sendMSG("%s" % (oc_status), msg_data["target"])
+            bot.irc.sendMSG("%s" % (oc_status), msg_data["target"])
 
             ## Offline servers
             eu_servers = []
@@ -79,16 +79,16 @@ class function(function_template):
                     eu_servers.append(offline_server)
 
             if len(us_servers) > 0:
-                bot._irc.sendMSG("US Servers Offline: " + prettyListString(us_servers, " & ", cc = color.irc_red), msg_data["target"])
+                bot.irc.sendMSG("US Servers Offline: " + prettyListString(us_servers, " & ", cc = color.irc_red), msg_data["target"])
             if len(eu_servers) > 0:
-                bot._irc.sendMSG("EU Servers Offline: " + prettyListString(eu_servers, " & ", cc = color.irc_red), msg_data["target"])
+                bot.irc.sendMSG("EU Servers Offline: " + prettyListString(eu_servers, " & ", cc = color.irc_red), msg_data["target"])
 
 
     def getMinecraftStatus(self, bot, msg_data, show_legacy, show_extended):
         try:
             r = requests.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header, timeout=5)
         except requests.exceptions.Timeout:
-            bot._irc.sendMSG(colorizer('xpaw.ru/mcstatus - &05Request Timed Out&c'), msg_data["target"])
+            bot.irc.sendMSG(colorizer('xpaw.ru/mcstatus - &05Request Timed Out&c'), msg_data["target"])
             return False
         except requests.exceptions.RequestException:
             raise
@@ -96,7 +96,7 @@ class function(function_template):
 
         if r.status_code != requests.codes.ok:
             error = 'xpaw.ru/mcstatus - &05' + str(r.status_code) + "&c"
-            bot._irc.sendMSG(colorizer(error), msg_data["target"])
+            bot.irc.sendMSG(colorizer(error), msg_data["target"])
             return False
         else:
             xpaw_status_raw = r.json()
@@ -115,24 +115,24 @@ class function(function_template):
             status_string += ", realms: " + self.colorizeStatusCode(realms_status["status"])
 
             status_string = colorizer(status_string.rstrip(', '))
-            bot._irc.sendMSG("%s" % (status_string), msg_data["target"])
+            bot.irc.sendMSG("%s" % (status_string), msg_data["target"])
 
             if show_extended:
                 login_title = self.colorizeExtendedStatus(login_status)
                 if login_title != None:
-                    bot._irc.sendMSG("Login: %s" % colorizer(login_title), msg_data["target"])
+                    bot.irc.sendMSG("Login: %s" % colorizer(login_title), msg_data["target"])
                 session_title = self.colorizeExtendedStatus(sessions_status)
                 if session_title != None:
-                    bot._irc.sendMSG("Session: %s" % colorizer(session_title), msg_data["target"])
+                    bot.irc.sendMSG("Session: %s" % colorizer(session_title), msg_data["target"])
                 website_title = self.colorizeExtendedStatus(website_status)
                 if website_title != None:
-                    bot._irc.sendMSG("Website: %s" % colorizer(website_title), msg_data["target"])
+                    bot.irc.sendMSG("Website: %s" % colorizer(website_title), msg_data["target"])
                 skins_title = self.colorizeExtendedStatus(skins_status)
                 if skins_title != None:
-                    bot._irc.sendMSG("Skins: %s" % colorizer(skins_title), msg_data["target"])
+                    bot.irc.sendMSG("Skins: %s" % colorizer(skins_title), msg_data["target"])
                 realms_title = self.colorizeExtendedStatus(realms_status)
                 if realms_title != None:
-                    bot._irc.sendMSG("Realms: %s" % colorizer(realms_title), msg_data["target"])
+                    bot.irc.sendMSG("Realms: %s" % colorizer(realms_title), msg_data["target"])
         return True
 
     def colorizeStatusCode(self, status):

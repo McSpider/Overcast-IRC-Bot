@@ -10,7 +10,7 @@ class function(function_template):
 
     def main(self, bot, msg_data, func_type):
         if msg_data["sender"] == msg_data["target"]:
-            bot._irc.sendMSG("pong", msg_data["target"])
+            bot.irc.sendMSG("pong", msg_data["target"])
         else:
-            bot._irc.sendMSG("%s: pong" % (msg_data["sender"]), msg_data["target"])
+            bot.irc.sendMSG("%s: pong" % (msg_data["sender"]), msg_data["target"])
         return True

@@ -15,14 +15,14 @@ class function(function_template):
             new_mask = msg_data["message"][2]
             if msg_data["message"][1] == "add":
                 if bot.addBlacklistedHostmask(new_mask):
-                    bot._irc.sendMSG("Added hostmask (%s) to blacklist" % new_mask, msg_data["target"])
+                    bot.irc.sendMSG("Added hostmask (%s) to blacklist" % new_mask, msg_data["target"])
             if msg_data["message"][1] == "remove":
                 if bot.removeBlacklistedHostmask(msg_data["message"][2]):
-                    bot._irc.sendMSG("Removed hostmask (%s) from blacklist" % new_mask, msg_data["target"])
+                    bot.irc.sendMSG("Removed hostmask (%s) from blacklist" % new_mask, msg_data["target"])
 
         else:
             if len(bot.blacklisted_users) == 0:
-                bot._irc.sendMSG("No users blacklisted.", msg_data["sender"])
+                bot.irc.sendMSG("No users blacklisted.", msg_data["sender"])
                 return True
 
             blacklist_list = bot.blacklisted_users
@@ -44,8 +44,8 @@ class function(function_template):
             pages_info_string = "(Page &05%i&c of &05%i&c) (Use &03-a&c to list all)" % (page, pages)
             if all_pages or page == pages: pages_info_string = "(&05%i&c)" % pages
 
-            bot._irc.sendMSG("Blacklisted Users: %s" % colorizer(pages_info_string), msg_data["sender"])
+            bot.irc.sendMSG("Blacklisted Users: %s" % colorizer(pages_info_string), msg_data["sender"])
             for mask in pageFromList(blacklist_list,page,page_size):
-                bot._irc.sendMSG("%s" % mask, msg_data["sender"])
+                bot.irc.sendMSG("%s" % mask, msg_data["sender"])
 
         return True
