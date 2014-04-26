@@ -106,7 +106,7 @@ class functions:
             if private_message:
                 target = msg_sender
 
-            msg_data = {"recipient":message_recipient,"message":msg_components[3:], "raw_message":" ".join(msg_components), "sender":msg_sender, "sender_hostmask":sender_full_hostmask, "message_type":message_type, "target":target}
+            msg_data = {"recipient":message_recipient,"message":msg_components[3:], "raw_message":" ".join(msg_components), "sender":msg_sender, "sender_hostmask":sender_full_hostmask, "message_type":message_type, "target":target, "time":message_data["time"]}
             if msg_data["message"][0].startswith(":"):
                 msg_data["message"][0] = (msg_data["message"][0])[1:]
 

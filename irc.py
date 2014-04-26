@@ -205,6 +205,7 @@ class irc:
         msg = string.rstrip(msg)
         message_type = self.getMessageType(msg)
         message_data = self.getMessageData(msg,message_type)
+        message_data["time"] = self.last_activity
         if self._bot.debug: log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
         else: log.info(msg)
         
