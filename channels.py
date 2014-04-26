@@ -75,7 +75,7 @@ class channels:
             return True
         return False
 
-    def isChannel(self, string_in):
+    def isValidChannelName(self, string_in):
         for char in self.chantypes:
             if string_in.startswith(char):
                 return True
