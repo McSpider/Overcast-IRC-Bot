@@ -44,10 +44,17 @@ class function(function_template):
                 bot.irc.sendMSG("...", msg_data["target"])
                 self.addCooldownForID(cooldown_id,3,3600)
                 return True
+
         if re.match("((.* %s .* bot .*)|(.* bot .* %s .*))" % (re.escape(bot.irc.nick), re.escape(bot.irc.nick)), message):
             if self.checkCooldownForID("Talking!" + msg_data["target"],4):
                 bot.irc.sendMSG("You talking about me?", msg_data["target"])
                 self.addCooldownForID("Talking!" + msg_data["target"],4,28800)
+                return True
+        
+        if re.match("(^%s(\:|) (who|what) are you\?|^[Ww](ho|hat) is %s\?)" % (re.escape(bot.irc.nick), re.escape(bot.irc.nick)), message):
+            if self.checkCooldownForID("Who!" + msg_data["target"],4):
+                bot.irc.sendMSG("I'm a bot! ////\^_^/\\\\\\\\", msg_data["target"])
+                self.addCooldownForID("Who!" + msg_data["target"],4,28800)
                 return True
 
         match = re.match("^WTF[^!]*?(!+)$", message)
