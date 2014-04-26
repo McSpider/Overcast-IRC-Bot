@@ -7,7 +7,7 @@ class function(function_template):
         function_template.__init__(self)
         self.commands = ["blacklist"]
         self.function_string = "Manage blacklisted users."
-        self.help_string = "Subcommands:\n&03{t}blacklist &c- list all blacklisted users.\n&03{t}blacklist add {username or hostmask matcher} &c- Add a user to the blacklist.\n&03{t}blacklist remove  {username or hostmask matcher} &c- Remove a user from the blacklist."
+        self.help_string = "Subcommands:\n&03{t}blacklist &c- list all blacklisted users.\n&03{t}blacklist add {username or hostmask matcher} &c- Add a user to the blacklist.\n&03{t}blacklist remove {username or hostmask matcher} &c- Remove a user from the blacklist."
         self.restricted = True
 
     def main(self, bot, msg_data, func_type):
