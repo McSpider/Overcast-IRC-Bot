@@ -17,20 +17,23 @@ class function(function_template):
                 if len(msg_data["message"]) > 2:
                     channel = msg_data["message"][2]
 
-                    if msg_data["message"][1] == "join":
-                        bot._irc._channels.join(channel)
-                        bot._irc.sendMSG("Joining channel: %s" % channel, msg_data["target"])
-                    if msg_data["message"][1] == "part":
-                        bot._irc._channels.part(channel)
-                        bot._irc.sendMSG("Parting channel: %s" % channel, msg_data["target"])
-                    
-                    if msg_data["message"][1] == "ignore":
-                        if not bot._irc._channels.isIgnoring(channel):
-                            bot._irc._channels.ignore(channel, True)
-                            bot._irc.sendMSG("Ignoring chat from channel: %s" % channel, msg_data["target"])
-                        else:
-                            bot._irc._channels.ignore(channel, False)
-                            bot._irc.sendMSG("Handling chat from channel: %s" % channel, msg_data["target"])
+                    if not bot._irc._channels.isChannel(msg_data["target"]):
+                        bot._irc.sendMSG("%s does not appear to be a valid IRC channel." % channel, msg_data["target"])
+                    else:
+                        if msg_data["message"][1] == "join":
+                            bot._irc._channels.join(channel)
+                            bot._irc.sendMSG("Joining channel: %s" % channel, msg_data["target"])
+                        if msg_data["message"][1] == "part":
+                            bot._irc._channels.part(channel)
+                            bot._irc.sendMSG("Parting channel: %s" % channel, msg_data["target"])
+                        
+                        if msg_data["message"][1] == "ignore":
+                            if not bot._irc._channels.isIgnoring(channel):
+                                bot._irc._channels.ignore(channel, True)
+                                bot._irc.sendMSG("Ignoring chat from channel: %s" % channel, msg_data["target"])
+                            else:
+                                bot._irc._channels.ignore(channel, False)
+                                bot._irc.sendMSG("Handling chat from channel: %s" % channel, msg_data["target"])
 
                 if msg_data["message"][1] == "list":
 

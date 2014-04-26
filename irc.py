@@ -220,6 +220,28 @@ class irc:
         if message_type == "PING" and len(msg_components) == 2:
             self.sendPingReply(msg_components[1])
 
+        if message_type == "PROTO":
+            irc_chantypes = re.search("CHANTYPES=(\S*)", msg)
+            if irc_chantypes:
+                irc_chantypes = irc_chantypes.group(1)
+                self._channels.chantypes = list(irc_chantypes)
+                log.debug("IRC channel types: " + color.purple + irc_chantypes + color.clear)
+
+            irc_nicklength = re.search("NICKLEN=(\S*)", msg)
+            if irc_nicklength:
+                irc_nicklength = irc_nicklength.group(1)
+                log.debug("IRC max nickname length: " + color.purple + irc_nicklength + color.clear)
+
+            irc_chanlength = re.search("CHANNELLEN=(\S*)", msg)
+            if irc_chanlength:
+                irc_chanlength = irc_chanlength.group(1)
+                log.debug("IRC max channel name length: " + color.purple + irc_chanlength + color.clear)
+
+            irc_topiclength = re.search("TOPICLEN=(\S*)", msg)
+            if irc_topiclength:
+                irc_topiclength = irc_topiclength.group(1)
+                log.debug("IRC max topic length: " + color.purple + irc_topiclength + color.clear)
+
         if message_type == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
             log.info(color.purple + 'Identify request recieved.' + color.clear)
             if self.password:

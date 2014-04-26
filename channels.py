@@ -14,6 +14,8 @@ class channels:
         self._irc = delegate
         self.list = {}
 
+        self.chantypes = ""
+
         # self.list[##test] = (channel(self,"##test"))
         pass
 
@@ -71,6 +73,11 @@ class channels:
             return True
         return False
 
+    def isChannel(self, string_in):
+        for char in self.chantypes:
+            if string_in.startswith(char):
+                return True
+        return False
 
 class channel:
     def __init__(self, name):
