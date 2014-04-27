@@ -79,6 +79,7 @@ class bot:
 
         self.unload()
 
+        if self.disconnected_errno: log.debug(self.disconnected_errno)
         if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
             if self.disconnected_errno != errno.ECONNRESET:
                 return 0
