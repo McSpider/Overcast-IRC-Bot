@@ -30,6 +30,8 @@ class irc:
         self.server = None
         self.server_port = None
 
+        self.nicklength = 20
+
         self.read_active = True
         self.poll_activity = True
         self.poll_activity_interval = 60
@@ -233,6 +235,7 @@ class irc:
             irc_nicklength = re.search("NICKLEN=(\S*)", msg)
             if irc_nicklength:
                 irc_nicklength = irc_nicklength.group(1)
+                self.nicklength = irc_nicklength
                 log.debug("IRC max nickname length: " + color.purple + irc_nicklength + color.clear)
 
             irc_chanlength = re.search("CHANNELLEN=(\S*)", msg)
