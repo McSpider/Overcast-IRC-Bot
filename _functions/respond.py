@@ -57,6 +57,14 @@ class function(function_template):
                 self.addCooldownForID("Who!" + msg_data["target"],4,28800)
                 return True
 
+        if re.match("((.* I have (a|some) question(s|)(\.|)$)|(.*(May|can) I ask (you |)a question.*))", message, re.IGNORECASE):
+            if self.checkCooldownForID("Ask!" + msg_data["target"],4):
+                bot.irc.sendMSG("%s: Don't ask too ask, just ask. If there's someone who can help you you will get a response." % msg_data["sender"], msg_data["target"])
+                if not re.match(".*(mod|admin|administrator|moderator) .*", message, re.IGNORECASE):
+                    bot.irc.sendMSG("Also, if you specifically need a admin or moderator just say so.", msg_data["target"])
+                self.addCooldownForID("Ask!" + msg_data["target"],4,1800)
+                return True
+
         match = re.match("^WTF[^!]*?(!+)$", message)
         if match:
             if self.checkCooldownForID(cooldown_id,3):
