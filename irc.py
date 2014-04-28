@@ -64,91 +64,102 @@ class irc:
 
     def getMessageType(self, msg):
         # Add the ascii character 1 to the regex using %c
-        if re.match("^:.*? PRIVMSG (&|#|\+|!).* :%cACTION .*%c$" % (1,1), msg):
+        if re.match("^:\S*? PRIVMSG (&|#|\+|!).* :%cACTION .*%c$" % (1,1), msg):
             return "CHANNEL_ACTION_MSG"
-        elif re.match("^:.*? PRIVMSG .* :%cACTION .*%c$" % (1,1), msg):
+        elif re.match("^:\S*? PRIVMSG .* :%cACTION .*%c$" % (1,1), msg):
             return "ACTION_MSG"
-        elif re.match("^:.*? PRIVMSG .* :%c.*%c$" % (1,1), msg):
+        elif re.match("^:\S*? PRIVMSG .* :%c.*%c$" % (1,1), msg):
             return "CTCP_REQUEST"
-        elif re.match("^:.*? NOTICE .* :%c.*%c$" % (1,1), msg):
+        elif re.match("^:\S*? NOTICE .* :%c.*%c$" % (1,1), msg):
             return "CTCP_REPLY"
-        elif re.match("^:.*? PRIVMSG (&|#|\+|!).* :.*$", msg):
+        elif re.match("^:\S*? PRIVMSG (&|#|\+|!).* :.*$", msg):
             return "CHANNEL_MSG"
-        elif re.match("^:.*? PRIVMSG .*:.*$", msg):
+        elif re.match("^:\S*? PRIVMSG .*:.*$", msg):
             return "QUERY_MSG"
-        elif re.match("^:.*? NOTICE .* :.*$", msg):
+        elif re.match("^:\S*? NOTICE .* :.*$", msg):
             return "NOTICE_MSG"
-        elif re.match("^:.*? INVITE .* .*$", msg):
+        elif re.match("^:\S*? INVITE .* .*$", msg):
             return "INVITE_NOTICE"
-        elif re.match("^:.*? JOIN .*$", msg):
+        elif re.match("^:\S*? JOIN .*$", msg):
             return "JOIN_NOTICE"
-        elif re.match("^:.*? TOPIC .* :.*$", msg):
+        elif re.match("^:\S*? TOPIC .* :.*$", msg):
             return "TOPICCHANGE_NOTICE"
-        elif re.match("^:.*? NICK :.*$", msg):
+        elif re.match("^:\S*? NICK :.*$", msg):
             return "NICKCHANGE_NOTICE"
-        elif re.match("^:.*? KICK .* .*$", msg):
+        elif re.match("^:\S*? KICK .* .*$", msg):
             return "KICK_NOTICE"
-        elif re.match("^:.*? PART .*$", msg):
+        elif re.match("^:\S*? PART .*$", msg):
             return "PART_NOTICE"
-        elif re.match("^:.*? MODE .* .*$", msg):
+        elif re.match("^:\S*? MODE .* .*$", msg):
             return "MODECHANGE_NOTICE"
-        elif re.match("^:.*? 001 .*? :.*$", msg):
+        elif re.match("^:\S*? 001 .*? :.*$", msg):
             return "WELCOME"
-        elif re.match("^:.*? 002 .*? :.*$", msg):
+        elif re.match("^:\S*? 002 .*? :.*$", msg):
             return "YOURHOST"
-        elif re.match("^:.*? 003 .*? :.*$", msg):
+        elif re.match("^:\S*? 003 .*? :.*$", msg):
             return "CREATED"
-        elif re.match("^:.*? 004 .*$", msg):
+        elif re.match("^:\S*? 004 .*$", msg):
             return "MYINFO"
-        elif re.match("^:.*? 005 .*? :Try server .*, port .*$", msg):
+        elif re.match("^:\S*? 005 .*? :Try server .*, port .*$", msg):
             return "BOUNCE"
-        elif re.match("^:.*? 005 .*? :.*$", msg):
+        elif re.match("^:\S*? 005 .*? :.*$", msg):
             return "PROTO"
         
-        elif re.match("^:.*? 251 .* :.*$", msg):
+        elif re.match("^:\S*? 251 .* :.*$", msg):
             return "LUSERCLIENT"
-        elif re.match("^:.*? 252 .*? [0-9]+ :.*$", msg):
+        elif re.match("^:\S*? 252 .*? [0-9]+ :.*$", msg):
             return "LUSEROP"
-        elif re.match("^:.*? 253 .*? [0-9]+ :.*$", msg):
+        elif re.match("^:\S*? 253 .*? [0-9]+ :.*$", msg):
             return "LUSERUNKNOWN"
-        elif re.match("^:.*? 254 .*? [0-9]+ :.*$", msg):
+        elif re.match("^:\S*? 254 .*? [0-9]+ :.*$", msg):
             return "LUSERCHANNELS"
-        elif re.match("^:.*? 255 .* :.*$", msg):
+        elif re.match("^:\S*? 255 .* :.*$", msg):
             return "LUSERME"
 
-        elif re.match("^:.*? 265 .* :.*$", msg):
+        elif re.match("^:\S*? 265 .* :.*$", msg):
             return "LLOCALUSERS"
-        elif re.match("^:.*? 266 .* :.*$", msg):
+        elif re.match("^:\S*? 266 .* :.*$", msg):
             return "LGLOBALUSERS"
-        elif re.match("^:.*? 250 .* :Highest connection count:.*$", msg):
+        elif re.match("^:\S*? 250 .* :Highest connection count:.*$", msg):
             return "STATSCONN"
-        elif re.match("^:.*? 250 .* :.*$", msg):
+        elif re.match("^:\S*? 250 .* :.*$", msg):
             return "STATSDLINE"
 
-        elif re.match("^:.*? 375 .* :.*$", msg):
+        elif re.match("^:\S*? 375 .* :.*$", msg):
             return "MOTDSTART"
-        elif re.match("^:.*? 372 .* :.*$", msg):
+        elif re.match("^:\S*? 372 .* :.*$", msg):
             return "MOTD"
-        elif re.match("^:.*? 376 .* :.*$", msg):
+        elif re.match("^:\S*? 376 .* :.*$", msg):
             return "ENDOFMOTD"
 
-        elif re.match("^:.*? 311 .* \* :.*$", msg):
+        elif re.match("^:\S*? 311 .* \* :.*$", msg):
             return "WHOISUSER"
-        elif re.match("^:.*? 312 .* :.*$", msg):
+        elif re.match("^:\S*? 312 .* :.*$", msg):
             return "WHOISSERVER"
-        elif re.match("^:.*? 313 .* :.*$", msg):
+        elif re.match("^:\S*? 313 .* :.*$", msg):
             return "WHOISOPERATOR"
-        elif re.match("^:.*? 317 .* :.*$", msg):
+        elif re.match("^:\S*? 317 .* :.*$", msg):
             return "WHOISIDLE"
-        elif re.match("^:.*? 318 .* :.*$", msg):
+        elif re.match("^:\S*? 318 .* :.*$", msg):
             return "ENDOFWHOIS"
-        elif re.match("^:.*? 319 .*? :.*$", msg):
+        elif re.match("^:\S*? 319 .*? :.*$", msg):
             return "WHOISCHANNELS"
 
-        elif re.match("^:.*? 353 .*? :.*$", msg):
+        elif re.match("^:\S*? 353 .*? :.*$", msg):
             return "NAMES_LIST"
-        elif re.match("^:.*? 366 .*? :.*$", msg):
+        elif re.match("^:\S*? 366 .*? :.*$", msg):
             return "NAMES_LIST_END"
+
+        elif re.match("^:\S*? 471 .*? :.*$", msg):
+            return "CHANNELISFULL"
+        elif re.match("^:\S*? 473 .*? :.*$", msg):
+            return "INVITEONLYCHAN"
+        elif re.match("^:\S*? 474 .*? :.*$", msg):
+            return "BANNEDFROMCHAN"
+        elif re.match("^:\S*? 475 .*? :.*$", msg):
+            return "BADCHANNELKEY"
+        elif re.match("^:\S*? 476 .*? :.*$", msg):
+            return "BADCHANMASK"
 
         elif re.match("^:\S*? QUIT :.*$", msg):
             return "QUIT_NOTICE"
@@ -264,20 +275,20 @@ class irc:
                 log.info(color.bold + "Overcast IRC Bot - Connected to IRC server\n" + color.clear)
                 self.didJoinServer()
 
-            if re.match("^:.*? MODE .* \+o %s$" % re.escape(self.nick), msg):
+            if re.match("^:\S*? MODE .* \+o %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "Oped in channel: " + color.clear + channel)
                 self.channels.flagIn("o",channel,True)
-            if re.match("^:.*? MODE .* \-o %s$" % re.escape(self.nick), msg):
+            if re.match("^:\S*? MODE .* \-o %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "De-Oped in channel: " + color.clear + channel)
                 self.channels.flagIn("o",channel,False)
 
-            if re.match("^:.*? MODE .* \+v %s$" % re.escape(self.nick), msg):
+            if re.match("^:\S*? MODE .* \+v %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "Voiced in channel: " + color.clear + channel)
                 self.channels.flagIn("v",channel,True)
-            if re.match("^:.*? MODE .* \-v %s$" % re.escape(self.nick), msg):
+            if re.match("^:\S*? MODE .* \-v %s$" % re.escape(self.nick), msg):
                 channel = msg_components[2]
                 log.info(color.b_purple + "De-Voiced in channel: " + color.clear + channel)
                 self.channels.flagIn("v",channel,False)
