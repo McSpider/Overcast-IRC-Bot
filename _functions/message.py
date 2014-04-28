@@ -8,7 +8,8 @@ class function(function_template):
     def __init__(self):
         function_template.__init__(self)
         self.commands = ["msg","me","notice"]
-        self.function_string = "Send custom messages to joined channels."
+        self.function_string = "Send messages to users or channels."
+        self.help_string = "Usage: {t}[msg|me|notice] <recipient> <message...>"
         self.restricted = True
         self.priority = 10
 
@@ -16,8 +17,6 @@ class function(function_template):
         if len(msg_data["message"]) > 2:
             argument = msg_data["message"][1]
             msg = " ".join(msg_data["message"][2:])
-            if not bot.irc.channels.isConnectedTo(argument):
-                argument = msg_data["target"]
 
             if (msg_data["message"][0] == "msg"):
                 bot.irc.sendMSG(msg, argument)
@@ -25,5 +24,4 @@ class function(function_template):
                 bot.irc.sendActionMSG(msg, argument)
             if (msg_data["message"][0] == "notice"):
                 bot.irc.sendNoticeMSG(msg, argument)
-            return True
-        return False
+        return True
