@@ -19,7 +19,7 @@ class function(function_template):
                 if len(msg_data["message"]) > 2:
                     channel = msg_data["message"][2]
 
-                    if not bot.irc.channels.isValidChannelName(msg_data["target"]):
+                    if not bot.irc.channels.isValidChannelName(channel):
                         bot.irc.sendMSG("%s does not appear to be a valid IRC channel." % channel, msg_data["target"])
                     else:
                         if msg_data["message"][1] == "join":
