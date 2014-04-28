@@ -45,7 +45,6 @@ class bot:
             self.blacklisted_users = blacklist_data
 
 
-        self.debug = config.get('bot_config', 'debug')
         self.triggers = filter(None, [self.nick + ":"] + config.get('bot_config', 'triggers').split(','))
         self.short_trigger = config.get('bot_config', 'short_trigger')
 
@@ -58,9 +57,8 @@ class bot:
         self.http_header = {'User-Agent': agent_str + ' (' + str(self.server) + " / " + str(self.nick) + ")"}
         self.functions = functions(self, self.irc)
 
-        if self.debug:
-            attrs = vars(self)
-            log.debug(', '.join("%s: %s" % item for item in attrs.items()) + "\n")
+        attrs = vars(self)
+        log.debug(', '.join("%s: %s" % item for item in attrs.items()) + "\n")
 
     def unload(self):
         self.functions.unloadFunctions()

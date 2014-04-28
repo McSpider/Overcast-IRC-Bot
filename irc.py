@@ -219,8 +219,7 @@ class irc:
         message_type = self.getMessageType(msg)
         message_data = self.getMessageData(msg,message_type)
         message_data["time"] = self.last_activity
-        if self._bot.debug: log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
-        else: log.info(msg)
+        log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
         
         msg_components = string.split(msg)
 
@@ -432,7 +431,6 @@ class irc:
     def pollActiveState(self):
         if self.poll_activity:
             time_now = datetime.datetime.now()
-            # if self._bot.debug: print color.blue + 'Checking for activity timeout, last activity: ' + color.clear + str(self.last_activity)
             if self.last_activity < time_now - datetime.timedelta(minutes = 2):
                 self.activity_timeout_count += 1
                 if self.activity_timeout_count > 1:
