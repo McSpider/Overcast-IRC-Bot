@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from utils import *
 
 import logging
-log = logging.getLogger(__name__)
+log = logging.getLogger("function")
 
 
 class function_template(object):
@@ -59,11 +59,11 @@ class function_template(object):
         self.disabled = None #{disabled_by:"", time:""}
 
     def load(self, bot):
-        log.debug("Function load: " + self.name)
+        log.debug(color.blue + "Function load: " + color.clear + self.name)
         self._bot = bot
 
     def unload(self, bot):
-        log.debug("Function unload: " + self.name)
+        log.debug(color.blue + "Function unload: " + color.clear + self.name)
 
 
     def main(self, bot, msg_data, func_type):
