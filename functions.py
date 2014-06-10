@@ -20,6 +20,11 @@ class functions:
         self._irc = irc
         self.global_cooldown = {}
         self.error_tracebacks = []
+
+        self.statistics = {}
+        stats_data = self._bot.openDataFile("_statistics", "_functions/", default = {})
+        if type(stats_data) is dict:
+            self.statistics = stats_data
         
         # Make sure the function data directory exists and if not, create it
         function_data_dir = os.path.dirname('./_functiondata/')
@@ -48,7 +53,15 @@ class functions:
 
     def unloadFunctions(self):
         for func in self.functions_list:
+            # Update the function statistics
+            if func.name in self.statistics:
+                self.statistics[func.name]["run_count"] = int(self.statistics[func.name]["run_count"]) + func.run_count
+            else:
+                self.statistics[func.name] = {"first_run":str(datetime.datetime.now()),"run_count":func.run_count}
+
             func.unload(self._bot)
+
+        self._bot.saveDataFile(self.statistics,"_statistics","_functions/")
 
     def checkForFunction(self, msg_components, message_type, message_data):
         private_message = (message_type == "QUERY_MSG") or (message_type == "ACTION_MSG")
