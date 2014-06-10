@@ -7,7 +7,7 @@ from function_template import *
 class function(function_template):
     def __init__(self):
         function_template.__init__(self)
-        self.commands = ["mcping"]
+        self.commands = ["mcping","mcp"]
         self.function_string = "Ping a minecraft server."
 
     def main(self, bot, msg_data, func_type):
@@ -25,7 +25,11 @@ class function(function_template):
                 ping_status = ping_status + " - Ping: " + str(data["ping"]).encode('utf-8') + "ms"
                 bot.irc.sendMSG("%s" % (ping_status), msg_data["target"])
 
-                motd = string.split(data["description"].encode('utf-8'), "\n")
+                motd = ""
+                if isinstance(data["description"], str) or isinstance(data["description"], unicode):
+                  motd = string.split(data["description"].encode('utf-8'), "\n")
+                elif isinstance(data["description"], dict):
+                  motd = string.split(data["description"]["text"].encode('utf-8'), "\n")
 
                 prev_line_color = ""
                 for line in motd:
