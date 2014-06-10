@@ -165,6 +165,8 @@ class irc:
             return "QUIT_NOTICE"
         elif re.match("^PING.*?$", msg):
             return "PING"
+        elif re.match("^ERROR.*?$", msg):
+            return "ERROR"
 
         return "GENERIC_MESSAGE"
 
