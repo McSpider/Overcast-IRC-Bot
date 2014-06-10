@@ -21,57 +21,57 @@ class channels:
         # self.list[##test] = (channel(self,"##test"))
         pass
 
-    def join(self, chan):
-        log.info(color.blue + 'Joining channel: ' + color.clear + chan)
-        self.list[chan] = channel(chan)
-        self._irc.sendRaw(('JOIN :%s\r\n' % chan))
+    def join(self, channel_name):
+        log.info(color.blue + 'Joining channel: ' + color.clear + channel_name)
+        self.list[channel_name] = channel(channel_name)
+        self._irc.sendRaw(('JOIN :%s\r\n' % channel_name), "IMPORTANT")
 
-    def part(self, chan):
-        log.info(color.blue + 'Parting channel: ' + color.clear + chan)
-        self._irc.sendRaw(('PART %s \r\n' % chan))
+    def part(self, channel_name):
+        log.info(color.blue + 'Parting channel: ' + color.clear + channel_name)
+        self._irc.sendRaw(('PART %s \r\n' % channel_name), "IMPORTANT")
 
-    def ignore(self, chan, flag):
-        log.info(color.blue + 'Ignoring chat from channel: ' + color.clear + chan + strFromBool(flag))
-        if self.list.has_key(chan):
-            self.list[chan].ignored = flag
+    def ignore(self, channel_name, flag):
+        log.info(color.blue + 'Ignoring chat from channel: ' + color.clear + channel_name + strFromBool(flag))
+        if channel_name in self.list:
+            self.list[channel_name].ignored = flag
 
-    def joinedTo(self, chan):
-        log.info(color.blue + 'Joined channel: ' + color.clear + chan)
-        if self.list.has_key(chan):
-            self.list[chan].connected = True
+    def joinedTo(self, channel_name):
+        log.info(color.blue + 'Joined channel: ' + color.clear + channel_name)
+        if channel_name in self.list:
+            self.list[channel_name].connected = True
 
-    def partedFrom(self, chan):
-        log.info(color.blue + 'Parted channel: ' + color.clear + chan)
-        if self.list.has_key(chan):
-            self.list[chan].connected = False
+    def partedFrom(self, channel_name):
+        log.info(color.blue + 'Parted channel: ' + color.clear + channel_name)
+        if channel_name in self.list:
+            self.list[channel_name].connected = False
 
-    def kickedFrom(self, chan):
-        log.info(color.red + 'Kicked from channel: ' + color.clear + chan)
-        if self.list.has_key(chan):
-            self.list[chan].connected = False
+    def kickedFrom(self, channel_name):
+        log.info(color.red + 'Kicked from channel: ' + color.clear + channel_name)
+        if channel_name in self.list:
+            self.list[channel_name].connected = False
 
-    def isConnectedTo(self,chan):
-        if self.list.has_key(chan):
-            return self.list[chan].connected
+    def isConnectedTo(self, channel_name):
+        if channel_name in self.list:
+            return self.list[channel_name].connected
         return False
 
-    def isIgnoring(self,chan):
-        if self.list.has_key(chan):
-            return self.list[chan].ignored
+    def isIgnoring(self, channel_name):
+        if channel_name in self.list:
+            return self.list[channel_name].ignored
         return False
 
-    def hasFlagIn(self,flag,chan):
-        if self.list.has_key(chan):
-            if flag in self.list[chan].my_flags:
+    def hasFlagIn(self, flag, channel_name):
+        if channel_name in self.list:
+            if flag in self.list[channel_name].my_flags:
                 return True
         return False
 
-    def flagIn(self,flag,chan,bool):
-        if self.list.has_key(chan):
+    def flagIn(self, flag, channel_name, bool):
+        if channel_name in self.list:
             if bool:
-                self.list[chan].my_flags.append(flag)
+                self.list[channel_name].my_flags.append(flag)
             else:
-                self.list[chan].my_flags.remove(flag)
+                self.list[channel_name].my_flags.remove(flag)
             return True
         return False
 
@@ -80,6 +80,16 @@ class channels:
             if string_in.startswith(char):
                 return True
         return False
+
+    def voiceUser(self, username, in_channel, auto_voice):
+        return False
+        pass
+
+
+    def userIsVoiced(self, username, in_channel, recursive):
+        return False
+        pass
+
 
 class channel:
     def __init__(self, name):

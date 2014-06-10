@@ -423,10 +423,6 @@ class irc:
         self.sendRaw(message)
 
 
-    # def voiceUser(self, username, channel, auto_voice):
-
-
-    # def userIsVoiced(self, username, channel, recursive):
 
 
 
