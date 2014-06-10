@@ -19,7 +19,11 @@ class function(function_template):
                 if len(msg_data["message"]) > 2:
                     channel = msg_data["message"][2]
 
-                    if not bot.irc.channels.isValidChannelName(channel):
+                    verify = True
+                    if len(msg_data["message"]) > 3 and msg_data["message"][3] == "-f":
+                        verify = False
+
+                    if not bot.irc.channels.isValidChannelName(channel) and verify:
                         bot.irc.sendMSG("%s does not appear to be a valid IRC channel." % channel, msg_data["target"])
                     else:
                         if msg_data["message"][1] == "join":
@@ -42,7 +46,7 @@ class function(function_template):
                     channels_list = []
                     for chan, data in bot.irc.channels.list.items():
                         chan_flags = prettyListString(data.my_flags, " & ")
-                        channels_list.append("&10%s&c: %s - %s %s" % (chan, chan_flags if chan_flags else "No flags set", ("Connected" if data.connected else "Not connected"), ("Ignored" if data.ignored else "Handling")))
+                        channels_list.append("&10%s&c: %s - %s, %s" % (chan, chan_flags if chan_flags else "No flags set", ("Connected" if data.connected else "Not connected"), ("Ignored" if data.ignored else "Handling")))
 
                     if len(channels_list) > 0:
                         page = 1
