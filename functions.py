@@ -75,7 +75,7 @@ class functions:
                 if not self._bot.isUserAuthed(sender_full_hostmask):
                     log.info(color.b_red + "Ignoring message from blacklisted hostmask: " + color.clear + sender_full_hostmask + color.b_red + " matches: " + color.clear + blacklist_match)
                     return
-                else: self._irc.sendMSG("Authed user blacklist match: %s matches: %s (Verify?)" % sender_full_hostmask, blacklist_match, self._bot.master_channel)
+                else: self._irc.sendMSG("Authed user blacklist match: %s matches: %s %s" % (color.irc_yellow + sender_full_hostmask + color.irc_clear, color.irc_blue + blacklist_match + color.irc_clear, color.irc_red + "(Verify?)" + color.irc_clear), self._bot.master_channel)
 
             # Global same sender message cooldown
             msg_sender = message_data["nick"]
@@ -86,9 +86,9 @@ class functions:
                 # Auto blacklist user if they have sent 10 triggering messages in the last 5 seconds
                 if self.global_cooldown[msg_sender]["messages"] > 10 and current_time < cooldown + datetime.timedelta(seconds = 5):
                     if not self._bot.hostmaskBlacklisted(sender_full_hostmask):
-                        sender_full_hostmask = message_data["username"] + "@" + message_data["hostmask"]
+                        sender_full_hostmask = "*" + message_data["username"] + "@" + message_data["hostmask"]
                         self._bot.addBlacklistedHostmask(sender_full_hostmask)
-                        self._irc.sendMSG("Auto blacklisting hostmask: %s" % sender_full_hostmask, self._bot.master_channel)
+                        self._irc.sendMSG("Global: Auto blacklisting hostmask: %s" % sender_full_hostmask, self._bot.master_channel)
                         return
 
                 # Ignore user if they have sent 2 or more messages in the last 2 seconds, or 3 messages in 3 seconds
