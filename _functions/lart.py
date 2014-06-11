@@ -51,9 +51,10 @@ class function(function_template):
             bot.irc.sendMSG("Go away, %s." % msg_data["sender"], msg_data["target"])
         elif self.checkCooldownForID(cooldown_id) == self.lart_limit + 5:
             # Abuse of lart command
-            hostmask = string.lstrip(msg_data["senderHostmask"],":")
-            bot.addBlacklistedHostmask(hostmask)
-            bot.irc.sendMSG("Auto blacklisting hostmask: %s" % hostmask, bot.master_channel)
+            hostmask = msg_data["sender_hostmask"]
+            if not bot.hostmaskBlacklisted(hostmask):
+                bot.addBlacklistedHostmask(hostmask)
+                bot.irc.sendMSG("Auto blacklisting hostmask: %s for abuse of lart command." % hostmask, bot.master_channel)
 
         self.addCooldownForID(cooldown_id)
         return True
