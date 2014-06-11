@@ -306,7 +306,7 @@ class irc:
     def read(self):
         # Start polling our active state
         self.last_activity = datetime.datetime.now()
-        t = threading.Thread(target = self.pollActiveState)
+        t = threading.Thread(target = self._pollActiveState)
         startThread(t)
 
         readbuffer = ""
@@ -433,25 +433,28 @@ class irc:
 
 
 
+    # Periodically check if there has been any activity in the last X minutes
+    # - If there is no activity try to ping ourselves to force some activity.
+    # - If there is no response to our ping try again and if it fails assume that the connection is gone.
+    def _pollActiveState(self):
+        activity_interval = datetime.timedelta(minutes = 3)
 
-
-    def pollActiveState(self):
         if self.poll_activity:
             time_now = datetime.datetime.now()
-            if self.last_activity < time_now - datetime.timedelta(minutes = 2):
+            if self.last_activity < time_now - activity_interval:
                 self.activity_timeout_count += 1
                 if self.activity_timeout_count > 1:
                     log.warning(color.red + 'Activity timeout. Disconnecting! ' + color.clear)
                     self.read_active = False
                     return
 
-                log.info(color.red + 'No activity in last 2 minutes.' + color.clear)
+                log.info(color.red + 'No activity in last 3 minutes.' + color.clear)
                 log.info(color.blue + 'Forcing activity, sending ping to: ' + color.clear + self.nick)
                 self.sendRaw("PING %s\r\n" % self.nick, "IMPORTANT")
             else:
                 self.activity_timeout_count = 0
 
-            threading.Timer(self.poll_activity_interval, self.pollActiveState).start()
+            threading.Timer(self.poll_activity_interval, self._pollActiveState).start()
 
 
     def addMessageToQueue(self, message, queue = "NORMAL"):
