@@ -42,9 +42,7 @@ class irc:
         # start polling the messages queue
         t = threading.Thread(target = self._sendQueuedMessages)
         startThread(t)
-        # Periodically check if there has been any activity in the last X minutes
-        # If there is no activity try to ping ourselves to force some activity.
-        # If there is no response to our ping try again and if it fails assume that the connection is gone. 
+        self.log_pings = False
 
 
     def connectToServer(self, server, port):
@@ -221,7 +219,8 @@ class irc:
         message_type = self.getMessageType(msg)
         message_data = self.getMessageData(msg,message_type)
         message_data["time"] = self.last_activity
-        log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
+        if not (message_type == "PING" and not self.log_pings):
+            log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
         
         msg_components = string.split(msg)
 
@@ -417,7 +416,8 @@ class irc:
 
 
     def sendPingReply(self, server):
-        log.info(color.blue + 'Sending ping reply: ' + color.clear + server)
+        if self.log_pings:
+            log.debug(color.blue + 'Sending ping reply: ' + color.clear + server)
 
         message = "PONG %s\r\n" % server
         self.sendRaw(message)
