@@ -6,6 +6,7 @@ import traceback
 import string, textwrap, re
 import datetime
 import select
+import collections
 
 from utils import *
 from channels import *
@@ -34,15 +35,20 @@ class irc:
 
         self.read_active = True
         self.poll_activity = True
-        self.poll_activity_interval = 60
+        self.poll_activity_interval = 60 #seconds
         self.activity_timeout_count = 0
 
-        self._messages_queue = []
-        self._messages_queue_send_interval = 1
-        # start polling the messages queue
-        t = threading.Thread(target = self._sendQueuedMessages)
-        startThread(t)
         self.log_pings = False
+
+        # Continuously poll the message queues and send the messages if permitted
+        self._message_queues = {}
+        self._message_sent_times = {}
+        # 'interval' time it waits until it starts sending again once the allotted 'amount' of messages have been sent.
+        self.queue_info = {"IMPORTANT":{"priority":1, "interval":datetime.timedelta(seconds = 2), "amount":15}, "NORMAL":{"priority":0, "interval":datetime.timedelta(seconds = 3), "amount":5}}
+        important_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("IMPORTANT",))
+        startThread(important_queue_t)
+        normal_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("NORMAL",))
+        startThread(normal_queue_t)
 
 
     def connectToServer(self, server, port):
@@ -55,7 +61,7 @@ class irc:
         # Send a WHOIS request for the bot to set self.current_hostmask
         # - While current_hostmask is not set the messages sent with sendMSG, sendNoticeMSG & sendActionMSG
         # - will not be split into lines properly and data may be lost
-        self.sendRaw('WHOIS %s\r\n' % self.nick)
+        self.sendRaw('WHOIS %s\r\n' % self.nick, "IMPORTANT")
         for channel in self._bot.autojoin_channels:
             self.channels.join(channel)
 
@@ -346,7 +352,7 @@ class irc:
     def quit(self,message="And the sun shines once again."):
         log.info(color.bold + 'Overcast IRC Bot - Quitting with message: "%s"\n' % message + color.clear)
         self._bot.intentional_disconnect = True;
-        self.sendRaw("QUIT :%s \r\n" % message)
+        self.sendRaw("QUIT :%s \r\n" % message, "IMPORTANT")
 
 
     def authUser(self, username, nick, realname, password):
@@ -356,8 +362,8 @@ class irc:
         if not password or len(password) < 1:
             log.warning(color.red + 'No password specified for authentication.\n' + color.clear)
 
-        self.sendRaw('USER %s %s %s \r\n' % (username, " 0 * :", realname))
-        self.sendRaw('NICK %s\r\n' % nick)
+        self.sendRaw('USER %s %s %s \r\n' % (username, " 0 * :", realname), "IMPORTANT")
+        self.sendRaw('NICK %s\r\n' % nick, "IMPORTANT")
 
         self.ident = username
         self.nick = nick
@@ -365,54 +371,57 @@ class irc:
         self.password = password
 
 
-    def sendRaw(self, message):
+    def sendRaw(self, message, priority = "NORMAL"):
         #print color.blue + 'Sending raw string: ' + color.clear + message
-        self._messages_queue.append(message)
+        self.addMessageToQueue(message, priority)
 
     # Sends a PRIVMSG message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
-    def sendMSG(self, message, recipient):
+    def sendMSG(self, message, recipient, priority = "NORMAL"):
         message = message.replace("\n"," ").replace("\r","")
         if recipient == None:
             log.warning(color.red + 'Send MSG Error: No message recipient specified! ' + color.clear)
-        log.info(color.blue + '@ Sending message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
-        
+            return
+
+        log.info(color.blue + '@ Adding message to queue: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
         msg_content_len = 512 - len(": %s PRIVMSG %s :\r\n" % (self.current_hostmask, recipient))
         message_lines = textwrap.wrap(message, msg_content_len)
 
         for line in message_lines:
             message_to_send = "PRIVMSG %s :%s\r\n" % (recipient, line)
-            self.sendRaw(message_to_send)
+            self.sendRaw(message_to_send, priority)
 
     # Sends a NOTICE message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
-    def sendNoticeMSG(self, message, recipient):
+    def sendNoticeMSG(self, message, recipient, priority = "NORMAL"):
         message = message.replace("\n"," ").replace("\r","")
         if recipient == None:
             log.warning(color.red + 'Send Notice Error: No message recipient specified! ' + color.clear)
-        log.info(color.blue + '@ Sending notice message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
-        
+            return
+
+        log.info(color.blue + '@ Adding notice message to queue: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
         msg_content_len = 512 - len(": %s NOTICE %s :\r\n" % (self.current_hostmask, recipient))
         message_lines = textwrap.wrap(message, msg_content_len)
 
         for line in message_lines:
             message_to_send = "NOTICE %s :%s\r\n" % (recipient, line)
-            self.sendRaw(message_to_send)
+            self.sendRaw(message_to_send, priority)
 
     # Sends a ACTION message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
-    def sendActionMSG(self, message, recipient):
+    def sendActionMSG(self, message, recipient, priority = "NORMAL"):
         message = message.replace("\n"," ").replace("\r","")
         if recipient == None:
             log.warning(color.red + 'Send Action Error: No message recipient specified! ' + color.clear)
-        log.info(color.blue + '@ Sending action message: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
-        
+            return
+
+        log.info(color.blue + '@ Adding action message to queue: ' + color.clear + message + color.blue + ' Recipient: '+ color.clear + recipient)
         msg_content_len = 512 - len(": %s PRIVMSG %s :%cACTION %c\r\n" % (self.current_hostmask, recipient, 1, 1))
         message_lines = textwrap.wrap(message, msg_content_len)
 
         for line in message_lines:
             message_to_send = "PRIVMSG %s :%cACTION %s%c\r\n" % (recipient, 1, line, 1)
-            self.sendRaw(message_to_send)
+            self.sendRaw(message_to_send, priority)
 
 
     def sendPingReply(self, server):
@@ -420,7 +429,7 @@ class irc:
             log.debug(color.blue + 'Sending ping reply: ' + color.clear + server)
 
         message = "PONG %s\r\n" % server
-        self.sendRaw(message)
+        self.sendRaw(message, "IMPORTANT")
 
 
 
@@ -438,23 +447,62 @@ class irc:
 
                 log.info(color.red + 'No activity in last 2 minutes.' + color.clear)
                 log.info(color.blue + 'Forcing activity, sending ping to: ' + color.clear + self.nick)
-                self.sendRaw("PING %s\r\n" % self.nick)
+                self.sendRaw("PING %s\r\n" % self.nick, "IMPORTANT")
             else:
                 self.activity_timeout_count = 0
 
             threading.Timer(self.poll_activity_interval, self.pollActiveState).start()
 
-    def _sendQueuedMessages(self):
-        if len(self._messages_queue) > 0:
-            message = self._messages_queue.pop(0)
-            try:
-                self._socket.send(message)
-            except Exception, e:
-                trace = traceback.format_exc()
-                log.error(color.red + trace + color.clear)
 
-        threading.Timer(self._messages_queue_send_interval, self._sendQueuedMessages).start()
+    def addMessageToQueue(self, message, queue = "NORMAL"):
+        if not queue in self.queue_info: # No queue with that name found use NORMAL queue
+            log.warning(color.red + 'No queue found with name "' + color.clear + str(queue) + color.red + '" setting to NORMAL queue.' + color.clear)
+            queue = "NORMAL"
+
+        if queue in self._message_queues:
+            self._message_queues[queue].append(message)
+        else:
+            self._message_queues[queue] = [message]
 
 
+    def _sendQueuedMessageForQueue(self, queue):
+        if queue in self._message_queues:
+            if len(self._message_queues[queue]) > 0:
+                
+                if not self.queueMessageFor(queue):
+                    self._message_sent_times[queue].append(datetime.datetime.now())
+
+                    message = self._message_queues[queue].pop(0)
+                    try:
+                        self._socket.send(message)
+                    except Exception, e:
+                        trace = traceback.format_exc()
+                        log.error(color.red + trace + color.clear)
+
+        threading.Timer(0.1, self._sendQueuedMessageForQueue, [queue]).start()
+
+
+    def queueMessageFor(self, queue):
+        if not queue in self.queue_info: # No queue info available do not throttle
+            log.warning(color.red + 'No queue found with name: ' + color.clear + str(queue))
+            return False
+
+        if not queue in self._message_sent_times: # no messages for queue exist
+            self._message_sent_times[queue] = collections.deque(maxlen=10)
+            return False
+
+        interval = self.queue_info[queue]["interval"]
+        amount = self.queue_info[queue]["amount"]
+
+        if len(self._message_sent_times[queue]) < amount:
+            return False
+        else:
+            time_now = datetime.datetime.now()
+            time_nth_message = self._message_sent_times[queue][-amount]
+
+            if (time_now - time_nth_message) < interval:
+                return True
+
+        return False
 
 
