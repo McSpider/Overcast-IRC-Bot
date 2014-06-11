@@ -71,7 +71,7 @@ class function(function_template):
                 func_type = func_type + "."
                 func_string = "No commands"
                 if fType == "command":
-                    func_string = " Commands: %s" % prettyListString(func.commands, " & ", color.irc_blue).ljust(24)
+                    func_string = "Commands: %s" % prettyListString(func.commands, " & ", color.irc_blue).ljust(24)
                 disabled = bot.functions.isFunctionDisabled(func)
                 funct_disabled = colorizer(" &05Disabled for: %s&c" % timedstr(disabled[1],True) if disabled else "")
                 bot.irc.sendMSG((color.irc_white + func_type + color.irc_clear + func.name).ljust(20) + func_string + funct_disabled, msg_data["sender"])
