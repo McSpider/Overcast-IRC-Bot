@@ -3,6 +3,7 @@
 
 from function_template import *
 import requests
+import minecraft.ping
 
 
 class function(function_template):
@@ -45,6 +46,21 @@ class function(function_template):
             error = 'oc.tc - Error: &05' + str(r.status_code) + "&c" + status_string
             bot.irc.sendMSG(colorizer(error), msg_data["target"])
         else:
+            # Default to No Connection (NC) We don't really care 'why' at this point.
+            us_ping = "&05NC&c"
+            eu_ping = "&05NC&c"
+            try:
+                us_data = minecraft.ping.get_info("us.oc.tc")
+                us_ping = str(us_data["ping"]).encode('utf-8') + "ms"
+            except Exception:
+                pass
+
+            try:
+                eu_data = minecraft.ping.get_info("eu.oc.tc")
+                eu_ping = str(eu_data["ping"]).encode('utf-8') + "ms"
+            except Exception:
+                pass
+
             oc_status = ""
             soup = BeautifulSoup(r.text)
             players_online = soup.find(text=re.compile(".*Players Online.*")).findParent('h3').find_all('small')[0].string.replace('\n','')
@@ -54,13 +70,17 @@ class function(function_template):
             if us_main_soup:
                 us_status = us_main_soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
                 oc_status += "US: " + us_status.title()
+                oc_status += " (&02" + us_ping + "&c)"
+
             if eu_main_soup:
                 eu_status = eu_main_soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
                 oc_status += (", " if oc_status else "") + "EU: " + eu_status.title()
+                oc_status += " (&02" + eu_ping + "&c)"
 
             if len(players_online) > 0:
                 oc_status = oc_status + " - Online Players: " + players_online
-            bot.irc.sendMSG("%s" % (oc_status), msg_data["target"])
+            
+            bot.irc.sendMSG("%s" % colorizer(oc_status), msg_data["target"])
 
             ## Offline servers
             eu_servers = []
