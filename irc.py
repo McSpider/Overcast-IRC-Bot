@@ -40,15 +40,10 @@ class irc:
 
         self.log_pings = False
 
-        # Continuously poll the message queues and send the messages if permitted
         self._message_queues = {}
         self._message_sent_times = {}
         # 'interval' time it waits until it starts sending again once the allotted 'amount' of messages have been sent.
         self.queue_info = {"IMPORTANT":{"priority":1, "interval":datetime.timedelta(seconds = 2), "amount":15}, "NORMAL":{"priority":0, "interval":datetime.timedelta(seconds = 3), "amount":5}}
-        important_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("IMPORTANT",))
-        startThread(important_queue_t)
-        normal_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("NORMAL",))
-        startThread(normal_queue_t)
 
 
     def connectToServer(self, server, port):
@@ -56,6 +51,12 @@ class irc:
         self.server = server
         self.server_port = port
         self._socket.connect((server, port))
+
+        # Continuously poll the message queues and send the messages if permitted
+        important_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("IMPORTANT",))
+        startThread(important_queue_t)
+        normal_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("NORMAL",))
+        startThread(normal_queue_t)
 
     def didJoinServer(self):
         # Send a WHOIS request for the bot to set self.current_hostmask
@@ -469,7 +470,7 @@ class irc:
 
 
     def _sendQueuedMessageForQueue(self, queue):
-        if queue in self._message_queues:
+        if queue in self._message_queues and self._socket:
             if len(self._message_queues[queue]) > 0:
                 
                 if not self.queueMessageFor(queue):
