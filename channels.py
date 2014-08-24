@@ -71,7 +71,8 @@ class channels:
             if bool:
                 self.list[channel_name].my_flags.append(flag)
             else:
-                self.list[channel_name].my_flags.remove(flag)
+                if flag in self.list[channel_name].my_flags:
+                    self.list[channel_name].my_flags.remove(flag)
             return True
         return False
 
