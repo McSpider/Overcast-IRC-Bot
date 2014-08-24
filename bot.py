@@ -91,11 +91,23 @@ class bot:
     def parseMessage(self, msgComponents, messageType, messageData):
         self.functions.checkForFunction(msgComponents, messageType, messageData)
 
-    def isUserAuthed(self,hostmask):
+    def isUserAuthed(self, hostmask):
         for mask in self.authed_hostmasks:
             regex_mask = self.simplifiedMatcherToRegex(mask)
             if re.match("^%s$" % regex_mask, hostmask, re.IGNORECASE):
                 return True
+        return False
+
+    def addAuthedHostmask(self, hostmask):
+        if not hostmask in self.authed_hostmasks:
+            self.authed_hostmasks.append(hostmask)
+            return True
+        return False
+
+    def removeAuthedHostmask(self, hostmask):
+        if hostmask in self.authed_hostmasks:
+            self.authed_hostmasks.remove(hostmask)
+            return True
         return False
 
     # Checks if a IRC hostmask is blacklisted
