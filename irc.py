@@ -233,6 +233,9 @@ class irc:
         
         msg_components = string.split(msg)
 
+        if message_type == "NAMES_LIST":
+            self.handleNamesListMessage(msg, msg_components, message_data)
+
         if message_type == "NAMES_LIST_END" and re.match("^:.* 366 %s .*:End of /NAMES.*$" % re.escape(self.nick), msg):
             self.channels.joinedTo(msg_components[3])
 
@@ -246,27 +249,7 @@ class irc:
             self.sendPingReply(msg_components[1])
 
         if message_type == "PROTO":
-            irc_chantypes = re.search("CHANTYPES=(\S*)", msg)
-            if irc_chantypes:
-                irc_chantypes = irc_chantypes.group(1)
-                self.channels.chantypes = list(irc_chantypes)
-                log.debug("IRC channel types: " + color.purple + irc_chantypes + color.clear)
-
-            irc_nicklength = re.search("NICKLEN=(\S*)", msg)
-            if irc_nicklength:
-                irc_nicklength = irc_nicklength.group(1)
-                self.nicklength = irc_nicklength
-                log.debug("IRC max nickname length: " + color.purple + irc_nicklength + color.clear)
-
-            irc_chanlength = re.search("CHANNELLEN=(\S*)", msg)
-            if irc_chanlength:
-                irc_chanlength = irc_chanlength.group(1)
-                log.debug("IRC max channel name length: " + color.purple + irc_chanlength + color.clear)
-
-            irc_topiclength = re.search("TOPICLEN=(\S*)", msg)
-            if irc_topiclength:
-                irc_topiclength = irc_topiclength.group(1)
-                log.debug("IRC max topic length: " + color.purple + irc_topiclength + color.clear)
+            self.handleProtoMessage(msg, msg_components, message_data)
 
         if message_type == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
             log.info(color.purple + 'Identify request recieved.' + color.clear)
@@ -278,33 +261,107 @@ class irc:
         if message_type == "WHOISUSER":
             if msg_components[2] == self.nick:
                 self.current_hostmask = msg_components[3] + "!" + msg_components[4] + "@" + msg_components[5]
+                log.debug("IRC connection hostmask: " + color.purple + self.current_hostmask + color.clear)
 
         if message_type == "MODECHANGE_NOTICE":
-            if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
-                log.info(color.bold + "Overcast IRC Bot - Connected to IRC server\n" + color.clear)
-                self.didJoinServer()
+            self.handleModeChangeMessage(msg, msg_components, message_data)
 
-            if re.match("^:\S*? MODE .* \+o %s$" % re.escape(self.nick), msg):
-                channel = msg_components[2]
-                log.info(color.b_purple + "Oped in channel: " + color.clear + channel)
-                self.channels.flagIn("o",channel,True)
-            if re.match("^:\S*? MODE .* \-o %s$" % re.escape(self.nick), msg):
-                channel = msg_components[2]
-                log.info(color.b_purple + "De-Oped in channel: " + color.clear + channel)
-                self.channels.flagIn("o",channel,False)
-
-            if re.match("^:\S*? MODE .* \+v %s$" % re.escape(self.nick), msg):
-                channel = msg_components[2]
-                log.info(color.b_purple + "Voiced in channel: " + color.clear + channel)
-                self.channels.flagIn("v",channel,True)
-            if re.match("^:\S*? MODE .* \-v %s$" % re.escape(self.nick), msg):
-                channel = msg_components[2]
-                log.info(color.b_purple + "De-Voiced in channel: " + color.clear + channel)
-                self.channels.flagIn("v",channel,False)
-
+        if message_type == "ERROR":
+            timeout_match = re.match("^ERROR :Closing Link: (?P<ip>\S*?) \(Ping timeout: (?P<timeout>\S*?) seconds\)$", msg)
+            if timeout_match:
+                log.debug("IRC connection timed out with IP: %s (timeout %s seconds)" % (timeout_match.group('ip'),timeout_match.group('timeout')) + color.purple + self.current_hostmask + color.clear)
+                self.disconnected_errno = errno.ECONNRESET
 
         self._bot.parseMessage(msg_components, message_type, message_data)
 
+
+    def handleModeChangeMessage(self, msg, msg_components, message_data):
+        if (msg == ":" + self.nick + " MODE " + self.nick + " :+i"):
+            log.info(color.bold + "Overcast IRC Bot - Connected to IRC server\n" + color.clear)
+            self.didJoinServer()
+
+        if re.match("^:\S*? MODE .* \+o %s$" % re.escape(self.nick), msg):
+            channel = msg_components[2]
+            log.info(color.b_purple + "Oped in channel: " + color.clear + channel)
+            self.channels.flagIn("o", channel, True)
+        if re.match("^:\S*? MODE .* \-o %s$" % re.escape(self.nick), msg):
+            channel = msg_components[2]
+            log.info(color.b_purple + "De-Oped in channel: " + color.clear + channel)
+            self.channels.flagIn("o", channel, False)
+
+        if re.match("^:\S*? MODE .* \+v %s$" % re.escape(self.nick), msg):
+            channel = msg_components[2]
+            log.info(color.b_purple + "Voiced in channel: " + color.clear + channel)
+            self.channels.flagIn("v", channel, True)
+        if re.match("^:\S*? MODE .* \-v %s$" % re.escape(self.nick), msg):
+            channel = msg_components[2]
+            log.info(color.b_purple + "De-Voiced in channel: " + color.clear + channel)
+            self.channels.flagIn("v", channel, False)
+
+        # MODECHANGE_NOTICE ':khazhyk!~khazhy@do-ny2-1.khaz.io MODE #overcastnetwork +b nixter1029!*@*'
+
+        if re.match("^:\S*? MODE .* \+b \S*$", msg):
+            channel = msg_components[2]
+            user = msg_components[4]
+            log.info("User " + color.yellow + user + color.clear + " banned in channel: " + color.blue + channel + color.clear)
+        if re.match("^:\S*? MODE .* \-b \S*$", msg):
+            channel = msg_components[2]
+            user = msg_components[4]
+            log.info("User " + color.yellow + user + color.clear + " unbanned in channel: " + color.blue + channel + color.clear)
+
+        # MODECHANGE_NOTICE ':McSpider!~McSpider@72.14.188.239 MODE ##mcspider +q Overcast!*@*'
+        if re.match("^:\S*? MODE .* \+q \S*$", msg):
+            channel = msg_components[2]
+            user = msg_components[4]
+            log.info("User " + color.yellow + user + color.clear + " muted in channel: " + color.blue + channel + color.clear)
+        if re.match("^:\S*? MODE .* \-q \S*$", msg):
+            channel = msg_components[2]
+            user = msg_components[4]
+            log.info("User " + color.yellow + user + color.clear + " unmuted in channel: " + color.blue + channel + color.clear)
+
+    def handleNamesListMessage(self, msg, msg_components, message_data):
+        names_match = re.match("^:(?P<server>\S*?) 353 %s = (?P<channel>\S*?) :(?P<users>.*?)$" % re.escape(self.nick), msg)
+        server = names_match.group('server')
+        channel = names_match.group('channel')
+        users = names_match.group('users')
+
+        if channel in self.channels.list:
+            for user in string.split(users, " "): ## parseUser(user)
+                self.channels.list[channel].users[user] = user
+
+        log.debug("Users in channel: " + color.purple + channel + color.clear + " From server: " + color.purple + server + color.clear)
+        log.debug(string.split(users, " "))
+
+    def handleProtoMessage(self, msg, msg_components, message_data):
+        irc_chantypes = re.search("CHANTYPES=(\S*)", msg)
+        if irc_chantypes:
+            irc_chantypes = irc_chantypes.group(1)
+            self.channels.chantypes = list(irc_chantypes)
+            log.debug("IRC channel types: " + color.purple + irc_chantypes + color.clear)
+
+        irc_nicklength = re.search("NICKLEN=(\S*)", msg)
+        if irc_nicklength:
+            irc_nicklength = irc_nicklength.group(1)
+            self.nicklength = irc_nicklength
+            log.debug("IRC max nickname length: " + color.purple + irc_nicklength + color.clear)
+
+        irc_chanlength = re.search("CHANNELLEN=(\S*)", msg)
+        if irc_chanlength:
+            irc_chanlength = irc_chanlength.group(1)
+            log.debug("IRC max channel name length: " + color.purple + irc_chanlength + color.clear)
+
+        irc_topiclength = re.search("TOPICLEN=(\S*)", msg)
+        if irc_topiclength:
+            irc_topiclength = irc_topiclength.group(1)
+            log.debug("IRC max topic length: " + color.purple + irc_topiclength + color.clear)
+
+        irc_userprefix = re.search("PREFIX=(\S*)", msg)
+        if irc_userprefix:
+            irc_userprefix = string.split(irc_userprefix.group(1).lstrip("("), ")")
+            irc_userprefixkeys = list(irc_userprefix[0])
+            irc_userprefixvalues = list(irc_userprefix[1])
+            irc_userprefix = dict(zip(irc_userprefixkeys, irc_userprefixvalues))
+            log.debug("IRC user prefixes: " + color.purple + str(irc_userprefix) + color.clear)
 
     def read(self):
         # Start polling our active state
@@ -346,7 +403,7 @@ class irc:
         self.poll_activity = False
 
     def disconnect(self):
-        # Check if the socket is still receving data, and if it is shut it down
+        # Check if the socket is still receiving data, and if it is shut it down
         # read_status = select.select([self._socket], [], [], 2)
         # if read_status[0]:
         #     self._socket.shutdown(socket.SHUT_RDWR)
@@ -448,6 +505,7 @@ class irc:
                 self.activity_timeout_count += 1
                 if self.activity_timeout_count > 1:
                     log.warning(color.red + 'Activity timeout. Disconnecting! ' + color.clear)
+                    self.disconnected_errno = errno.ECONNRESET # errno.EHOSTUNREACH
                     self.read_active = False
                     return
 

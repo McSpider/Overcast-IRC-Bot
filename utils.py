@@ -30,6 +30,8 @@ class color():
     b_red = '\033[1;31m'
     green = '\033[0;32m'
     b_green = '\033[1;32m'
+    yellow = '\033[0;33m'
+    b_yellow = '\033[1;33m'
     blue = '\033[0;34m'
     b_blue = '\033[1;34m'
     purple = '\033[0;35m'
