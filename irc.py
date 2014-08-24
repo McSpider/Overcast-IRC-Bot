@@ -170,6 +170,8 @@ class irc:
             return "QUIT_NOTICE"
         elif re.match("^PING.*?$", msg):
             return "PING"
+        elif re.match("^:\S*? PONG.*?$", msg):
+            return "PONG"
         elif re.match("^ERROR.*?$", msg):
             return "ERROR"
 
