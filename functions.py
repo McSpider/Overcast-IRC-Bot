@@ -70,6 +70,11 @@ class functions:
         # Sender status/permissions check
         if public_message or private_message:
             sender_full_hostmask = message_data["nick"] + "!" + message_data["username"] + "@" + message_data["hostmask"]
+            # Ignore messages from our own host mask.
+            if self._irc.current_hostmask == sender_full_hostmask:
+                log.info(color.b_red + "Ignoring message from self, nick: " + color.clear + message_data["nick"])
+                return
+
             blacklist_match = self._bot.hostmaskBlacklisted(sender_full_hostmask)
             if blacklist_match:
                 if not self._bot.isUserAuthed(sender_full_hostmask):
