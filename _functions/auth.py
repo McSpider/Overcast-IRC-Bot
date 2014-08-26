@@ -44,8 +44,7 @@ class function(function_template):
                 page = 1
 
             pages_info_string = "(Page &05%i&c of &05%i&c) (Use &03-a&c to list all)" % (page, pages)
-            if all_pages or page == pages: pages_info_string = "(&05%i&c)" % len(authentication_list)
-            #?? pages is not very useful here
+            if all_pages or pages == 1: pages_info_string = "(&05%i&c)" % len(authentication_list)
 
             bot.irc.sendMSG("Authed Users: %s" % colorizer(pages_info_string), msg_data["sender"])
             for index, mask in enumerate(pageFromList(authentication_list,page,page_size)):
