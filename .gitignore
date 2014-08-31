@@ -2,3 +2,9 @@
 
 */xcuserdata/*.xcuserdatad
 */project.xcworkspace/xcuserdata/*.xcuserdatad
+*bot.log
+_authed.json
+_blacklist.json
+_functiondata/*
+_functions_disabled/*
+_functions/_statistics.json
