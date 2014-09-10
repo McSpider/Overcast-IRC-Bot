@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import socket, threading
+import socket, errno, threading
 import traceback
 import string, textwrap, re
 import datetime
