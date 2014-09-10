@@ -269,8 +269,8 @@ class irc:
         if message_type == "ERROR":
             timeout_match = re.match("^ERROR :Closing Link: (?P<ip>\S*?) \(Ping timeout: (?P<timeout>\S*?) seconds\)$", msg)
             if timeout_match:
-                log.debug("IRC connection timed out with IP: %s (timeout %s seconds)" % (timeout_match.group('ip'),timeout_match.group('timeout')) + color.purple + self.current_hostmask + color.clear)
-                self.disconnected_errno = errno.ECONNRESET
+                log.debug("IRC connection timed out with IP: %s (timeout %s seconds) " % (timeout_match.group('ip'),timeout_match.group('timeout')) + color.purple + self.current_hostmask + color.clear)
+                self._bot.disconnected_errno = errno.ECONNRESET
 
         self._bot.parseMessage(msg_components, message_type, message_data)
 
@@ -505,7 +505,7 @@ class irc:
                 self.activity_timeout_count += 1
                 if self.activity_timeout_count > 1:
                     log.warning(color.red + 'Activity timeout. Disconnecting! ' + color.clear)
-                    self.disconnected_errno = errno.ECONNRESET # errno.EHOSTUNREACH
+                    self._bot.disconnected_errno = errno.ECONNRESET # errno.EHOSTUNREACH
                     self.read_active = False
                     return
 
