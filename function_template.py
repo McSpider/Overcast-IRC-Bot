@@ -59,11 +59,13 @@ class function_template(object):
         self.disabled = None #{disabled_by:"", time:""}
 
     def load(self, bot):
-        log.debug(color.blue + "Function load: " + color.clear + self.name)
+        # log.debug(color.blue + "Function load: " + color.clear + self.name)
         self._bot = bot
+        return self.name;
 
     def unload(self, bot):
-        log.debug(color.blue + "Function unload: " + color.clear + self.name)
+        # log.debug(color.blue + "Function unload: " + color.clear + self.name)
+        return self.name;
 
 
     def main(self, bot, msg_data, func_type):
@@ -119,20 +121,6 @@ class function_template(object):
         log.info(color.cyan + "Removing key lock for " + entity + color.clear)
         self.key_lock.append(entity)
 
-
-def prettyListString(alist, joiner, cc = None, capitalize = False):
-    if capitalize:
-        alist = [item.capitalize() for item in alist]
-
-    if not cc == None:
-        alist = [cc + item + color.irc_clear for item in alist]
-
-    if len(alist) > 1:
-        result = ", ".join(alist[:-1])
-        if len(alist) > 1:
-            result = result + joiner + alist[-1]
-        return result
-    elif len(alist) == 1: return alist[0]
 
 def colorizer(message):
     message = message.replace("&00", color.irc_boldwhite)

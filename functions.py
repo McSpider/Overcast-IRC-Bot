@@ -39,6 +39,7 @@ class functions:
         lib_path = os.path.abspath('./_functions/')
         sys.path.append(lib_path)
 
+        loaded_functions = []
         for f in os.listdir(os.path.abspath("./_functions/")):
             function_name, ext = os.path.splitext(f)
             if ext == ".py":
@@ -46,12 +47,18 @@ class functions:
                 command_func = getattr(function, "function")
                 instance = command_func()
                 instance.name = function_name + ext
-                instance.load(self._bot)
+                loaded = instance.load(self._bot)
+                if loaded:
+                    loaded_functions.append(loaded)
+
                 self.functions_list.append(instance)
 
-            self.functions_list = sorted(self.functions_list, key=lambda function: function.priority, reverse=False)
+        log.debug(color.blue + "Functions loaded: " + color.clear + prettyListString(loaded_functions," & ") + "\n")
+
+        self.functions_list = sorted(self.functions_list, key=lambda function: function.priority, reverse=False)
 
     def unloadFunctions(self):
+        unloaded_functions = []
         for func in self.functions_list:
             # Update the function statistics
             if func.name in self.statistics:
@@ -59,7 +66,11 @@ class functions:
             else:
                 self.statistics[func.name] = {"first_run":str(datetime.datetime.now()),"run_count":func.run_count}
 
-            func.unload(self._bot)
+            unloaded = func.unload(self._bot)
+            if unloaded:
+                unloaded_functions.append(unloaded)
+
+        log.debug(color.blue + "Functions unloaded: " + color.clear + prettyListString(unloaded_functions," & ") + "\n")
 
         self._bot.saveDataFile(self.statistics,"_statistics","_functions/")
 

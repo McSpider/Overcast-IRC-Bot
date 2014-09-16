@@ -95,3 +95,17 @@ def timedstr(delta, short = False):
 def strFromBool(boolean):
     return "Yes" if boolean else "No"
 
+def prettyListString(alist, joiner, cc = None, capitalize = False):
+    if capitalize:
+        alist = [item.capitalize() for item in alist]
+
+    if not cc == None:
+        alist = [cc + item + color.irc_clear for item in alist]
+
+    if len(alist) > 1:
+        result = ", ".join(alist[:-1])
+        if len(alist) > 1:
+            result = result + joiner + alist[-1]
+        return result
+    elif len(alist) == 1: return alist[0]
+
