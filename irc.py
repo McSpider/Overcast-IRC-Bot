@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 class irc:
     def __init__(self, delegate):
-        self._socket = socket.socket()
+        self._socket = None;
         self.channels = channels(self)
         self._bot = delegate;
 
@@ -50,6 +50,7 @@ class irc:
         log.info(color.b_blue + 'Connecting to server: ' + color.clear + server + ':' + str(port))
         self.server = server
         self.server_port = port
+        self._socket = socket.socket()
         self._socket.connect((server, port))
 
         # Continuously poll the message queues and send the messages if permitted
