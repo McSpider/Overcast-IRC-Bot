@@ -77,13 +77,13 @@ class bot:
 
         self.unload()
 
-        if self.disconnected_errno: log.debug(self.disconnected_errno)
+        if self.disconnected_errno: log.debug(errno.errorcode[self.disconnected_errno])
         if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
             if self.disconnected_errno != errno.ECONNRESET:
                 return 0
 
             self.reconnect_count += 1
-            log.info(color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected!" + color.clear)
+            log.info(color.b_red + "Overcast IRC Bot - Unintentionally disconnected!" + color.clear)
             return 1
 
         return 0
@@ -211,7 +211,7 @@ try:
     status = -1
     while status != 0:
         if status == 1:
-            log.error(color.b_red + "\nOvercast IRC Bot - Unintentionally disconnected, reconnecting. " + color.clear)
+            log.error(color.b_red + "Overcast IRC Bot - Unintentionally disconnected, reconnecting. " + color.clear)
         _bot = bot()
         try:
             status = _bot.main()
