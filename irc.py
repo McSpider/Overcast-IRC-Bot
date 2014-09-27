@@ -41,6 +41,8 @@ class irc:
 
         self.log_pings = False
 
+        self.message_log = {} #{"sender":{"msg":[],"msg_data":[],"msg_type":""},}
+
         self._message_queues = {}
         self._message_sent_times = {}
         # 'interval' time it waits until it starts sending again once the allotted 'amount' of messages have been sent.
@@ -236,7 +238,7 @@ class irc:
         self.last_activity = datetime.datetime.now()
         msg = string.rstrip(msg)
         message_type = self.getMessageType(msg)
-        message_data = self.getMessageData(msg,message_type)
+        message_data = self.getMessageData(msg, message_type)
         message_data["time"] = self.last_activity
         if not (message_type == "PING" and not self.log_pings):
             log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
@@ -282,6 +284,17 @@ class irc:
                 log.debug("IRC connection timed out with IP: %s%s%s (timeout %s%s%s seconds) " % (color.purple,timeout_match.group('ip'),color.clear,color.red,timeout_match.group('timeout'),color.clear))
                 self._bot.disconnected_errno = errno.ECONNRESET
 
+        msg_sender = ""
+        if "nick" in message_data:
+            msg_sender = message_data["nick"]
+        elif "server" in message_data:
+            msg_sender = message_data["server"]
+        else:
+            msg_sender = message_type
+
+        if not msg_sender in self.message_log:
+            self.message_log[msg_sender] = []
+        self.message_log[msg_sender].append({"msg":msg_components,"msg_type":message_type,"msg_data":message_data})
         self._bot.parseMessage(msg_components, message_type, message_data)
 
 
