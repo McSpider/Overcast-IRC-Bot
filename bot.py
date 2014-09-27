@@ -13,7 +13,7 @@ import json
 
 
 import logging
-setupLogging(logging.DEBUG,logging.DEBUG)
+setupLogging(logging.DEBUG, logging.DEBUG)
 log = logging.getLogger('bot')
 
 class bot:
@@ -63,8 +63,8 @@ class bot:
     def unload(self):
         self.functions.unloadFunctions()
 
-        self.saveDataFile(self.authed_hostmasks,"_authed","")
-        self.saveDataFile(self.blacklisted_users,"_blacklist","")
+        self.saveDataFile(self.authed_hostmasks, "_authed", "")
+        self.saveDataFile(self.blacklisted_users, "_blacklist", "")
 
 
     def main(self):
@@ -73,7 +73,7 @@ class bot:
         reconnect_delay = 5
         reconnect_count = 0
         while did_connect == False and reconnect_count < self.reconnect_limit:
-            did_connect = self.irc.connectToServer(self.server,self.server_port)
+            did_connect = self.irc.connectToServer(self.server, self.server_port)
             if not did_connect:
                 log.error(color.b_red + "Overcast IRC Bot - Failed to connect, retrying. (attempt #%s, delay %s sec) \n" % (reconnect_count + 1, reconnect_delay) + color.clear)
                 sleep(reconnect_delay)
@@ -81,7 +81,7 @@ class bot:
                 reconnect_count += 1
 
         if did_connect:
-            self.irc.authUser(self.ident,self.nick,self.realname,self.password)
+            self.irc.authUser(self.ident, self.nick, self.realname, self.password)
             self.irc.read() # Blocks till the socket closes
 
         self.irc.disconnect()
@@ -124,20 +124,20 @@ class bot:
     # Checks if a IRC hostmask is blacklisted
     # - If a match is found the hostmask matcher is returned
     # - If no match is found returns False
-    def hostmaskBlacklisted(self,hostmask):
+    def hostmaskBlacklisted(self, hostmask):
         for mask in self.blacklisted_users:
             regex_mask = self.simplifiedMatcherToRegex(mask)
             if re.match("^%s$" % regex_mask, hostmask, re.IGNORECASE):
                 return mask
         return False
 
-    def addBlacklistedHostmask(self,hostmask):
+    def addBlacklistedHostmask(self, hostmask):
         if not hostmask in self.blacklisted_users:
             self.blacklisted_users.append(hostmask)
             return True
         return False
 
-    def removeBlacklistedHostmask(self,hostmask):
+    def removeBlacklistedHostmask(self, hostmask):
         if hostmask in self.blacklisted_users:
             self.blacklisted_users.remove(hostmask)
             return True
@@ -147,7 +147,7 @@ class bot:
     # - Currently only supports * as a wildcard
     def simplifiedMatcherToRegex(self, mask):
         regex_mask = re.escape(mask)
-        regex_mask = regex_mask.replace("\*",".*")
+        regex_mask = regex_mask.replace("\*", ".*")
         return regex_mask
 
 
@@ -213,7 +213,7 @@ class bot:
             return input
 
 
-    def notAllowedMessage(self,user,recipient):
+    def notAllowedMessage(self, user, recipient):
         self.irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
 
 

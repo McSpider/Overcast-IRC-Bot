@@ -210,12 +210,12 @@ class irc:
             server = None
 
             if "!" in prefix and "@" in prefix:
-                split = string.split(prefix,"!")
+                split = string.split(prefix, "!")
                 nick = split[0]
                 if nick.startswith(":"):
                     nick = nick[1:]
 
-                split = string.split(split[1],"@")
+                split = string.split(split[1], "@")
                 hostmask = split[1]
                 username = split[0]
                 message_data["nick"] = nick
@@ -241,7 +241,7 @@ class irc:
         message_data = self.getMessageData(msg, message_type)
         message_data["time"] = self.last_activity
         if not (message_type == "PING" and not self.log_pings):
-            log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22," ") + " " + color.clear + repr(msg))
+            log.info(color.cyan + str(self.last_activity) + " " + color.green + message_type.rjust(22, " ") + " " + color.clear + repr(msg))
         
         msg_components = string.split(msg)
 
@@ -266,7 +266,7 @@ class irc:
         if message_type == "NOTICE_MSG" and re.match("^:NickServ!.*? NOTICE %s :.*identify via \x02/msg NickServ identify.*$" % re.escape(self.nick), msg):
             log.info(color.purple + 'Identify request recieved.' + color.clear)
             if self.password:
-                self.sendMSG(('identify %s' % self.password),'NickServ')
+                self.sendMSG(('identify %s' % self.password), 'NickServ')
             else:
                 log.warning(color.red + 'No password specified, not authenticating.' + color.clear)
 
@@ -281,7 +281,7 @@ class irc:
         if message_type == "ERROR":
             timeout_match = re.match("^ERROR :Closing Link: (?P<ip>\S*?) \(Ping timeout: (?P<timeout>\S*?) seconds\)$", msg)
             if timeout_match:
-                log.debug("IRC connection timed out with IP: %s%s%s (timeout %s%s%s seconds) " % (color.purple,timeout_match.group('ip'),color.clear,color.red,timeout_match.group('timeout'),color.clear))
+                log.debug("IRC connection timed out with IP: %s%s%s (timeout %s%s%s seconds) " % (color.purple, timeout_match.group('ip'), color.clear, color.red, timeout_match.group('timeout'), color.clear))
                 self._bot.disconnected_errno = errno.ECONNRESET
 
         msg_sender = ""
@@ -294,7 +294,7 @@ class irc:
 
         if not msg_sender in self.message_log:
             self.message_log[msg_sender] = []
-        self.message_log[msg_sender].append({"msg":msg_components,"msg_type":message_type,"msg_data":message_data})
+        self.message_log[msg_sender].append({"msg":msg_components, "msg_type":message_type, "msg_data":message_data})
         self._bot.parseMessage(msg_components, message_type, message_data)
 
 
@@ -436,7 +436,7 @@ class irc:
 
         self._socket.close()
 
-    def quit(self,message="And the sun shines once again."):
+    def quit(self, message="And the sun shines once again."):
         log.info(color.bold + 'Overcast IRC Bot - Quitting with message: "%s"\n' % message + color.clear)
         self._bot.intentional_disconnect = True;
         self.sendRaw("QUIT :%s \r\n" % message, "IMPORTANT")
@@ -465,7 +465,7 @@ class irc:
     # Sends a PRIVMSG message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendMSG(self, message, recipient, priority = "NORMAL"):
-        message = message.replace("\n"," ").replace("\r","")
+        message = message.replace("\n", " ").replace("\r", "")
         if recipient == None:
             log.warning(color.red + 'Send MSG Error: No message recipient specified! ' + color.clear)
             return
@@ -481,7 +481,7 @@ class irc:
     # Sends a NOTICE message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendNoticeMSG(self, message, recipient, priority = "NORMAL"):
-        message = message.replace("\n"," ").replace("\r","")
+        message = message.replace("\n", " ").replace("\r", "")
         if recipient == None:
             log.warning(color.red + 'Send Notice Error: No message recipient specified! ' + color.clear)
             return
@@ -497,7 +497,7 @@ class irc:
     # Sends a ACTION message split into lines equal to or less than 512 characters
     # - NOTE: The line split length is incorrect until self.current_hostmask is correctly set
     def sendActionMSG(self, message, recipient, priority = "NORMAL"):
-        message = message.replace("\n"," ").replace("\r","")
+        message = message.replace("\n", " ").replace("\r", "")
         if recipient == None:
             log.warning(color.red + 'Send Action Error: No message recipient specified! ' + color.clear)
             return
