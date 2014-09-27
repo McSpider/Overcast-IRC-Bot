@@ -49,9 +49,9 @@ class bot:
         self.short_trigger = config.get('bot_config', 'short_trigger')
 
         self.intentional_disconnect = False;
+        self.disconnected_errno = None;
         self.reconnect_count = 0;
         self.reconnect_limit = 5;
-        self.disconnected_errno = None;
 
         agent_str = "Overcast IRC Bot/1.0 (https://github.com/McSpider/Overcast-IRC-Bot)"
         self.http_header = {'User-Agent': agent_str + ' (' + str(self.server) + " / " + str(self.nick) + ")"}
@@ -69,21 +69,32 @@ class bot:
 
     def main(self):
         log.info(color.bold + "Overcast IRC Bot - Hi! \n" + color.clear)
-        self.irc.connectToServer(self.server,self.server_port)
-        self.irc.authUser(self.ident,self.nick,self.realname,self.password)
+        did_connect = False
+        reconnect_delay = 5
+        reconnect_count = 0
+        while did_connect == False and reconnect_count < self.reconnect_limit:
+            did_connect = self.irc.connectToServer(self.server,self.server_port)
+            if not did_connect:
+                log.error(color.b_red + "Overcast IRC Bot - Failed to connect, retrying. (attempt #%s, delay %s sec) \n" % (reconnect_count + 1, reconnect_delay) + color.clear)
+                sleep(reconnect_delay)
+                reconnect_delay = reconnect_delay * 2
+                reconnect_count += 1
 
-        self.irc.read()
+        if did_connect:
+            self.irc.authUser(self.ident,self.nick,self.realname,self.password)
+            self.irc.read() # Blocks till the socket closes
+
         self.irc.disconnect()
-
         self.unload()
 
-        if self.disconnected_errno: log.debug(errno.errorcode[self.disconnected_errno])
-        if not self.intentional_disconnect and self.reconnect_count < self.reconnect_limit:
-            if self.disconnected_errno != errno.ECONNRESET:
-                return 0
+        if self.intentional_disconnect:
+            return 0
+        if not did_connect:
+            return 0
 
+        if self.disconnected_errno: log.debug(errno.errorcode[self.disconnected_errno])
+        if self.reconnect_count < self.reconnect_limit:
             self.reconnect_count += 1
-            log.info(color.b_red + "Overcast IRC Bot - Unintentionally disconnected!" + color.clear)
             return 1
 
         return 0
@@ -210,11 +221,11 @@ class bot:
 try:
     status = -1
     while status != 0:
-        if status == 1:
-            log.error(color.b_red + "Overcast IRC Bot - Unintentionally disconnected, reconnecting. " + color.clear)
         _bot = bot()
         try:
             status = _bot.main()
+            if status == 1:
+                log.error(color.b_red + "Overcast IRC Bot - Unintentionally disconnected, reconnecting. %s\n" % (self.disconnected_errno,) + color.clear)
         except Exception, e:
             trace = traceback.format_exc()
             log.error(color.red + trace + color.clear)

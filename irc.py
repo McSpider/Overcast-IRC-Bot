@@ -33,7 +33,8 @@ class irc:
 
         self.nicklength = 20
 
-        self.read_active = True
+        self.read_active = True # Setting this to False stops the read loop
+        self.write_active = True
         self.poll_activity = True
         self.poll_activity_interval = 60 #seconds
         self.activity_timeout_count = 0
@@ -51,13 +52,21 @@ class irc:
         self.server = server
         self.server_port = port
         self._socket = socket.socket()
-        self._socket.connect((server, port))
+        try:
+            self._socket.connect((server, port))
+        except socket.timeout:
+            return False
+        except Exception, e:
+            trace = traceback.format_exc()
+            log.error(color.red + trace + color.clear)
+            return False
 
         # Continuously poll the message queues and send the messages if permitted
         important_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("IMPORTANT",))
         startThread(important_queue_t)
         normal_queue_t = threading.Thread(target = self._sendQueuedMessageForQueue, args = ("NORMAL",))
         startThread(normal_queue_t)
+        return True
 
     def didJoinServer(self):
         # Send a WHOIS request for the bot to set self.current_hostmask
@@ -270,7 +279,7 @@ class irc:
         if message_type == "ERROR":
             timeout_match = re.match("^ERROR :Closing Link: (?P<ip>\S*?) \(Ping timeout: (?P<timeout>\S*?) seconds\)$", msg)
             if timeout_match:
-                log.debug("IRC connection timed out with IP: %s (timeout %s seconds) " % (timeout_match.group('ip'),timeout_match.group('timeout')) + color.purple + self.current_hostmask + color.clear)
+                log.debug("IRC connection timed out with IP: %s%s%s (timeout %s%s%s seconds) " % (color.purple,timeout_match.group('ip'),color.clear,color.red,timeout_match.group('timeout'),color.clear))
                 self._bot.disconnected_errno = errno.ECONNRESET
 
         self._bot.parseMessage(msg_components, message_type, message_data)
@@ -373,9 +382,9 @@ class irc:
         readbuffer = ""
         # Loop till the readbuffer is nil (i.e. the socket is disconnected)
         while self.read_active == True:
-            read_status = select.select([self._socket], [], [], 2)
+            socket_status = select.select([self._socket], [], [], 2)
             
-            if read_status[0]:
+            if socket_status[0]: # If the socket has data to parse
                 try:
                     readdata = self._socket.recv(512)
                     try:
@@ -404,10 +413,14 @@ class irc:
         self.poll_activity = False
 
     def disconnect(self):
-        # Check if the socket is still receiving data, and if it is shut it down
-        # read_status = select.select([self._socket], [], [], 2)
-        # if read_status[0]:
-        #     self._socket.shutdown(socket.SHUT_RDWR)
+        self.write_active = False
+        try:
+            self._socket.shutdown(socket.SHUT_RDWR)
+        except Exception, e:
+            if e.errno != errno.ENOTCONN:
+                trace = traceback.format_exc()
+                log.error(color.red + trace + color.clear)
+
         self._socket.close()
 
     def quit(self,message="And the sun shines once again."):
@@ -433,7 +446,7 @@ class irc:
 
 
     def sendRaw(self, message, priority = "NORMAL"):
-        #print color.blue + 'Sending raw string: ' + color.clear + message
+        #log.debug(color.blue + 'Sending raw string: ' + color.clear + message)
         self.addMessageToQueue(message, priority)
 
     # Sends a PRIVMSG message split into lines equal to or less than 512 characters
@@ -530,21 +543,28 @@ class irc:
             self._message_queues[queue] = [message]
 
 
+
     def _sendQueuedMessageForQueue(self, queue):
-        if queue in self._message_queues and self._socket:
-            if len(self._message_queues[queue]) > 0:
-                
-                if not self.queueMessageFor(queue):
-                    self._message_sent_times[queue].append(datetime.datetime.now())
+        if queue in self._message_queues and len(self._message_queues[queue]) > 0:
+            if self._socket and self.write_active:
+                    if not self.queueMessageFor(queue):
+                        self._message_sent_times[queue].append(datetime.datetime.now())
 
-                    message = self._message_queues[queue].pop(0)
-                    try:
-                        self._socket.send(message)
-                    except Exception, e:
-                        trace = traceback.format_exc()
-                        log.error(color.red + trace + color.clear)
+                        message = self._message_queues[queue].pop(0)
+                        try:
+                            self._socket.send(message)
+                        except Exception, e:
+                            trace = traceback.format_exc()
+                            log.error(color.red + trace + color.clear)
+        
+            elif not self.write_active: # No write active, remove all queued messages
+                messages = self._message_queues[queue]
+                self._message_queues[queue] = []
+                for message in messages:
+                    log.debug(color.yellow + "Removed Queued Message: " + color.clear + message)
 
-        threading.Timer(0.1, self._sendQueuedMessageForQueue, [queue]).start()
+        if self.write_active:
+            threading.Timer(0.1, self._sendQueuedMessageForQueue, [queue]).start()
 
 
     def queueMessageFor(self, queue):
