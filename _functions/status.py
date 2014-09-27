@@ -12,7 +12,16 @@ class function(function_template):
         self.commands = ["status","mcstatus"]
         self.function_string = "Get the Overcast and minecraft server status. (uses xpaw.ru/mcstatus)"
         self.help_string = "Arguments:\n-e Show extended status info, if available."
-    
+
+        self.request_s = requests.session()
+
+    def load(self, bot):
+        function_template.load(self, bot)
+        log.debug(color.blue + "Function load: " + color.clear + "Minecraft status, " + self.name)
+        # Load this page so that its cookie is stored, otherwise the first request will return an error
+        self.request_s.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header, timeout=5)
+
+
     def main(self, bot, msg_data, func_type):
         show_legacy = False
         show_extended = False
@@ -31,7 +40,7 @@ class function(function_template):
 
     def getOvercastStatus(self, bot, msg_data):
         try:
-            r = requests.get("https://oc.tc/play", headers = bot.http_header, timeout=5)
+            r = self.request_s.get("https://oc.tc/play", headers = bot.http_header, timeout=5)
         except requests.exceptions.Timeout:
             bot.irc.sendMSG(colorizer('oc.tc - &05Request Timed Out&c'), msg_data["target"])
             return False
@@ -108,7 +117,7 @@ class function(function_template):
 
     def getMinecraftStatus(self, bot, msg_data, show_legacy, show_extended):
         try:
-            r = requests.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header, timeout=5)
+            r = self.request_s.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header, timeout=5)
         except requests.exceptions.Timeout:
             bot.irc.sendMSG(colorizer('xpaw.ru/mcstatus - &05Request Timed Out&c'), msg_data["target"])
             return False
@@ -122,6 +131,10 @@ class function(function_template):
             return False
         else:
             xpaw_status_raw = r.json()
+            if "status" in xpaw_status_raw and xpaw_status_raw["status"] == u"majorproblem":
+                bot.irc.sendMSG(colorizer('xpaw.ru/mcstatus - ' + str(xpaw_status_raw["psa"])), msg_data["target"])
+                return False
+
             status_string = "xpaw.ru/mcstatus - "
 
             login_status = xpaw_status_raw["report"]["login"]
