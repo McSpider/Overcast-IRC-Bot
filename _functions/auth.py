@@ -19,8 +19,20 @@ class function(function_template):
                 if bot.addAuthedHostmask(new_mask):
                     bot.irc.sendMSG("Added hostmask (%s) to auth list" % new_mask, msg_data["target"])
             if msg_data["message"][1] == "remove":
-                if bot.removeAuthedHostmask(msg_data["message"][2]):
-                    bot.irc.sendMSG("Removed hostmask (%s) from auth list" % new_mask, msg_data["target"])
+                if new_mask.startswith("[") and new_mask.endswith("]"):
+                    indexes = msg_data["message"][2].rstrip("]").lstrip("[").split(',')
+                    masks_removed = []
+                    for index in sorted(indexes, reverse = True):
+                        if int(index):
+                            mask = bot.authed_hostmasks[int(index)]
+                            if bot.removeAuthedHostmask(mask):
+                                masks_removed.append(index)
+                    
+                    masks_removed = sorted(masks_removed, reverse = True)
+                    bot.irc.sendMSG("Removed hostmask('s) (%s) from auth list" % prettyListString(masks_removed, " & "), msg_data["target"])
+                else:
+                    if bot.removeAuthedHostmask(msg_data["message"][2]):
+                        bot.irc.sendMSG("Removed hostmask (%s) from auth list" % new_mask, msg_data["target"])
 
         else:
             if len(bot.authed_hostmasks) == 0:
