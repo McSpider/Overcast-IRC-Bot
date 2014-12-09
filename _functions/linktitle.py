@@ -12,6 +12,9 @@ class function(function_template):
         self.function_string = "Get the title for specific links."
         self.hidden = True
 
+        self.cooldown_time = datetime.timedelta(minutes = 2)
+        self.link_history = {}
+
 
     def main(self, bot, msg_data, func_type):
         if (func_type == "natural"):
@@ -38,7 +41,7 @@ class function(function_template):
                         if r.status_code != requests.codes.ok:
                             log.debug(r.headers)
                             if r.status_code == 404:
-                                bot.irc.sendMSG(message, bot.master_channel)
+                                bot.irc.sendMSG("Error: " + msg_data["sender"] + ": " + message, bot.master_channel)
                                 bot.irc.sendMSG('404 - Page not found', bot.master_channel)
                             else:
                                 bot.irc.sendMSG(message, bot.master_channel)
@@ -65,10 +68,27 @@ class function(function_template):
                             # Don't print the same title twice
                             if not page_title in titles:
                                 titles.append(page_title)
-                                bot.irc.sendMSG(page_title, msg_data["target"])
+                                if self.checkHistoryForLinkTitle(page_title) == 0:
+                                    bot.irc.sendMSG(page_title, msg_data["target"])
+                                    self.addLinkTitleToHistory(page_title)
                     
             return match_found
        
         return False
+
+    def checkHistoryForLinkTitle(self, link):
+        current_time = datetime.datetime.now()
+        if link in self.link_history and current_time < self.link_history[link]:
+            return 1
+        return 0
+
+
+    def addLinkTitleToHistory(self, link):
+        current_time = datetime.datetime.now()
+        if link in self.link_history:
+            if current_time > self.link_history[link]:
+                self.link_history[link] = current_time + self.cooldown_time
+        else:
+            self.link_history[link] = current_time + self.cooldown_time
 
 
