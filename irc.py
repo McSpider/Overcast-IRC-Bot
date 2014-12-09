@@ -284,6 +284,11 @@ class irc:
                 log.debug("IRC connection timed out with IP: %s%s%s (timeout %s%s%s seconds) " % (color.purple, timeout_match.group('ip'), color.clear, color.red, timeout_match.group('timeout'), color.clear))
                 self._bot.disconnected_errno = errno.ECONNRESET
 
+            timeout_match = re.match("^ERROR :Closing Link: (?P<ip>\S*?) \(Connection timed out\)$", msg)
+            if timeout_match:
+                log.debug("IRC connection timed out with IP: %s%s%s " % (color.purple, timeout_match.group('ip'), color.clear))
+                self._bot.disconnected_errno = errno.ECONNRESET
+
         msg_sender = ""
         if "nick" in message_data:
             msg_sender = message_data["nick"]
@@ -574,7 +579,7 @@ class irc:
                 messages = self._message_queues[queue]
                 self._message_queues[queue] = []
                 for message in messages:
-                    log.debug(color.yellow + "Removed Queued Message: " + color.clear + message)
+                    log.warning(color.yellow + "Removed Queued Message: " + color.clear + message)
 
         if self.write_active:
             threading.Timer(0.1, self._sendQueuedMessageForQueue, [queue]).start()
