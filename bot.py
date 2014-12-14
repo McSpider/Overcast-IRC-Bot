@@ -213,8 +213,11 @@ class bot:
             return input
 
 
-    def notAllowedMessage(self, user, recipient):
-        self.irc.sendMSG("%sYou're not allowed to do that %s%s" % (color.irc_red, user, color.irc_clear), recipient)
+    def notAllowedMessage(self, user, recipient, info_str):
+        if len(info_str) == 0:
+            info_str = "%sYou're not allowed to do that.%s" % (color.irc_red, color.irc_clear)
+        self.irc.sendMSG(info_str, recipient)
+        self.irc.sendMSG(user + ": " + info_str, self.master_channel)
 
 
 # Start the bot

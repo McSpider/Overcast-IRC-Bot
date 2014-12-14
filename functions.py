@@ -165,7 +165,9 @@ class functions:
                                     func_exectuted = self.runFunction(func, msg_data, "command")
                                     if func_exectuted and func.blocking:
                                         return
-                                else: self._bot.notAllowedMessage(msg_data["sender"],message_recipient)
+                                else:
+                                    info_str = "Usage of the %s function is %srestricted.%s" % (func.name, color.irc_red, color.irc_clear)
+                                    self._bot.notAllowedMessage(msg_data["sender"], msg_data["sender"], info_str)
 
                 if "natural" in func.type:
                     func_exectuted = self.runFunction(func, msg_data, "natural")
