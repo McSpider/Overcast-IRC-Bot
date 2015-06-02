@@ -23,7 +23,8 @@ class function(function_template):
             link_matchers = {"Reddit":"(www\.reddit\.com/r/[A-Za-z0-9-_]+/[A-Za-z0-9-/_]+|redd\.it/[A-Za-z0-9-]+)", \
             "Overcast":"(oc\.tc/forums/topics/[A-Za-z0-9-]+|oc\.tc/forums/posts/[A-Za-z0-9-]+|oc\.tc/forums/[A-Za-z0-9-]+)", \
             "Imgur":"(imgur\.com/[A-Za-z0-9-/_#]+|i\.imgur\.com/[A-Za-z0-9-/_#\.]+)", \
-            "Oc Issues":"(github\.com/OvercastNetwork/[^\s/]+/issues/[0-9]+)"}
+            "Oc Issues":"(github\.com/OvercastNetwork/[^\s/]+/issues/[0-9]+)", \
+            "twitter":"(twitter\.com\/\S*?\/status\/[0-9]{18})"}
 
 
             titles = []
@@ -71,9 +72,9 @@ class function(function_template):
                                 if self.checkHistoryForLinkTitle(page_title) == 0:
                                     bot.irc.sendMSG(page_title, msg_data["target"])
                                     self.addLinkTitleToHistory(page_title)
-                    
+
             return match_found
-       
+
         return False
 
     def checkHistoryForLinkTitle(self, link):
