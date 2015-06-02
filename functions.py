@@ -170,6 +170,9 @@ class functions:
                                     self._bot.notAllowedMessage(msg_data["sender"], msg_data["sender"], info_str)
 
                 if "natural" in func.type:
+                    if disabled:
+                        log.debug("%s function disabled by: %s - Expires in: %s" % (func.name ,disabled[0], timedstr(disabled[1])))
+                        continue
                     func_exectuted = self.runFunction(func, msg_data, "natural")
                     if func_exectuted and func.blocking:
                         return
