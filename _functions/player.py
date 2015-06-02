@@ -24,6 +24,8 @@ class function(function_template):
         if r.status_code != requests.codes.ok:
             if r.status_code == 404:
                 error = '404 - User not found'
+            if r.status_code == 522:
+                error = '522 - Request Timed Out'
             else:
                 error = 'Request Exception - Code: ' + str(r.status_code)
         else:
@@ -35,15 +37,15 @@ class function(function_template):
             elif soup.find("small", text=["server joins"]):
                 kills = soup.find("small", text=["kills"]).findParent('h2').contents[0].strip('\n')
 
-                last_seen = "- Last seen unavailable"
+                last_seen = ""
                 last_seen_data = soup.find("span", text=re.compile(".*%s.*" % str(player), re.IGNORECASE)).findParent('h1')
+                print last_seen_data.contents
                 if not len(last_seen_data.contents) < 5:
-                    last_seen = string.join(last_seen_data.contents[3].contents[0].split())
-                    if last_seen == "Online:":
-                        last_seen_server = last_seen_data.find(href="/play").contents[1].contents[0]
-                        last_seen = last_seen + " " + last_seen_server
-                    last_seen = "- " + last_seen
-                
+                    last_seen = string.join(last_seen_data.contents[3].contents[0].split()) # Remove newlines
+                    last_seen = last_seen.strip('(').strip(')')
+                    last_seen = last_seen.split(" ")[1]
+                    last_seen = " - Formerly: " + last_seen
+
                 deaths = soup.find("small", text=["deaths"]).findParent('h2').contents[0].strip('\n')
                 friends = soup.find("small", text=["friends"]).findParent('h2').contents[0].strip('\n')
                 kd_ratio = soup.find("small", text=["kd ratio"]).findParent('h2').contents[0].strip('\n')
@@ -51,16 +53,28 @@ class function(function_template):
                 joins = soup.find("small", text=["server joins"]).findParent('h2').contents[0].strip('\n')
                 raindrops = soup.find("small", text=["raindrops"]).findParent('h2').contents[0].strip('\n')
 
-                wools = soup.find("small", text=["wools placed"]).findParent('h2').contents[0].strip('\n')
-                cores = soup.find("small", text=["cores leaked"]).findParent('h2').contents[0].strip('\n')
-                monuments = soup.find("small", text=["monuments destroyed"]).findParent('h2').contents[0].strip('\n')
+                wools = "0"
+                cores = "0"
+                monuments = "0"
+
+                wools_element = soup.find("small", text=["wools placed"])
+                if wools_element:
+                    wools = wools_element.findParent('h2').contents[0].strip('\n')
+
+                cores_element = soup.find("small", text=["cores leaked"])
+                if cores_element:
+                    cores = cores_element.findParent('h2').contents[0].strip('\n')
+
+                monuments_element = soup.find("small", text=["monuments destroyed"])
+                if monuments_element:
+                    monuments = monuments_element.findParent('h2').contents[0].strip('\n')
 
                 stats_message = colorizer("Kills:&05 %s&c, Deaths:&05 %s&c, KD Ratio:&05 %s&c, KK Ratio:&05 %s&c" % (kills, deaths, kd_ratio, kk_ratio))
                 objectives_message = colorizer("Wools Placed:&02 %s&c, Cores Leaked:&02 %s&c, Monuments Destroyed:&02 %s&c" % (wools, cores, monuments))
                 friends_message = colorizer("Friends:&03 %s&c, Joins:&03 %s&c" % (friends, joins))
                 raindrops_message = colorizer("&10Rain&cdrops: %s" % (raindrops))
-
-                bot.irc.sendMSG("%s %s - %s" % (str(player), last_seen, raindrops_message), msg_data["target"])
+                player = colorizer("&b%s&c" % player)
+                bot.irc.sendMSG("%s%s - %s" % (str(player), last_seen, raindrops_message), msg_data["target"])
                 bot.irc.sendMSG(stats_message, msg_data["target"])
                 bot.irc.sendMSG(objectives_message, msg_data["target"])
                 bot.irc.sendMSG(friends_message, msg_data["target"])
