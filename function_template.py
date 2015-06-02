@@ -140,7 +140,7 @@ def colorizer(message):
     message = message.replace("&14", color.irc_boldblack)
     message = message.replace("&15", color.irc_white)
 
-    # message = message.replace("&b", color.irc_bold)
+    message = message.replace("&b", color.irc_bold)
     # message = message.replace("&i", color.irc_italic)
     # message = message.replace("&u", color.irc_underline)
     message = message.replace("&c", color.irc_clear)
