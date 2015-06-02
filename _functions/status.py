@@ -18,9 +18,13 @@ class function(function_template):
     def load(self, bot):
         function_template.load(self, bot)
         log.debug(color.blue + "Function load: " + color.clear + "Minecraft status, " + self.name)
-        # Load this page so that its cookie is stored, otherwise the first request will return an error
-        self.request_s.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header, timeout=5)
-
+        try:
+            # Load this page so that its cookie is stored, otherwise the first request will return an error
+            self.request_s.get("http://xpaw.ru/mcstatus/status.json", headers = bot.http_header, timeout=5)
+        except requests.exceptions.Timeout:
+            log.debug('xpaw.ru/mcstatus - Request Timed Out')
+        except requests.exceptions.RequestException:
+            raise
 
     def main(self, bot, msg_data, func_type):
         show_legacy = False
@@ -72,47 +76,70 @@ class function(function_template):
 
             oc_status = ""
             soup = BeautifulSoup(r.text)
-            players_online = soup.find(text=re.compile(".*Players Online.*")).findParent('h3').find_all('small')[0].string.replace('\n','')
+            status_am = soup.find(text=re.compile(".*America.*"), class_="location").findParent('td')
+            status_eu = soup.find(text=re.compile(".*Europe.*"), class_="location").findParent('td')
 
-            eu_main_soup = soup.find('div',id="eu-main")
-            us_main_soup = soup.find('div',id="us-main")
-            if us_main_soup:
-                us_status = us_main_soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
-                oc_status += "US: " + us_status.title()
-                oc_status += " (&02" + us_ping + "&c)"
 
-            if eu_main_soup:
-                eu_status = eu_main_soup.find("b", text=["Status"]).findParent('td').findParent('tr').find_all('td')[1].contents[2].strip('\n')
-                oc_status += (", " if oc_status else "") + "EU: " + eu_status.title()
-                oc_status += " (&02" + eu_ping + "&c)"
+            players_online_am = status_am.find_all('strong')[0].string.replace('\n','')
+            servers_online_am = status_am.find_all('strong')[1].string.replace('\n','')
+            players_online_eu = status_eu.find_all('strong')[0].string.replace('\n','')
+            servers_online_eu = status_am.find_all('strong')[1].string.replace('\n','')
 
-            if len(players_online) > 0:
-                oc_status = oc_status + " - Online Players: " + players_online
-            
+
+            oc_status += "US: &03" + players_online_am + "&c player" + ("s" if int(players_online_am) > 1 else "")\
+                       + " &03" + servers_online_am + "&c server" + ("s" if int(servers_online_am) > 1 else "")
+            oc_status += " (&02" + us_ping + "&c)"
+
+            oc_status += (", " if oc_status else "") + "EU: &03" + players_online_eu + "&c player" + ("s" if int(players_online_am) > 1 else "")\
+                       + " &03" + servers_online_eu + "&c server" + ("s" if int(servers_online_eu) > 1 else "")
+            oc_status += " (&02" + eu_ping + "&c)"
+
             bot.irc.sendMSG("%s" % colorizer(oc_status), msg_data["target"])
 
-            ## Offline servers
-            eu_servers = []
-            us_servers = []
-            us_soup = soup.find('div',id="us")
-            eu_soup = soup.find('div',id="eu")
 
-            us_offline = us_soup.find_all(text='(Offline)')
-            for item in us_offline:
-                offline_server = item.parent.parent.contents[0].replace('\n','')
-                if offline_server:
-                    us_servers.append(offline_server)
 
-            eu_offline = eu_soup.find_all(text='(Offline)')
-            for item in eu_offline:
-                offline_server = item.parent.parent.contents[0].replace('\n','')
-                if offline_server:
-                    eu_servers.append(offline_server)
+            try:
+                r = self.request_s.get("https://oc.tc/stats?game=all&sort=kills", headers = bot.http_header, timeout=5)
+            except requests.exceptions.Timeout:
+                return False
+            except requests.exceptions.RequestException:
+                raise
+                return False
 
-            if len(us_servers) > 0:
-                bot.irc.sendMSG("US Servers Offline: " + prettyListString(us_servers, " & ", cc = color.irc_red), msg_data["target"])
-            if len(eu_servers) > 0:
-                bot.irc.sendMSG("EU Servers Offline: " + prettyListString(eu_servers, " & ", cc = color.irc_red), msg_data["target"])
+            if r.status_code == requests.codes.ok:
+                soup2 = BeautifulSoup(r.text)
+                top_players = soup2.find(text=re.compile(".*Playing Time.*"), width="18%").findParent('table').findChildren('tr')
+
+                player1 = top_players[1].findChildren('td')[-1].findChildren('a')[0].string.replace('\n','')
+                player2 = top_players[2].findChildren('td')[-1].findChildren('a')[0].string.replace('\n','')
+                player3 = top_players[3].findChildren('td')[-1].findChildren('a')[0].string.replace('\n','')
+
+                scoreboard = "Kill Stats: &05#1&c " + player1 + ", &10#2&c " + player2 + ", &07#3&c " + player3
+                bot.irc.sendMSG("%s" % colorizer(scoreboard), msg_data["target"])
+
+
+            # ## Offline servers
+            # eu_servers = []
+            # us_servers = []
+            # us_soup = soup.find('div',id="us")
+            # eu_soup = soup.find('div',id="eu")
+
+            # us_offline = us_soup.find_all(text='(Offline)')
+            # for item in us_offline:
+            #     offline_server = item.parent.parent.contents[0].replace('\n','')
+            #     if offline_server:
+            #         us_servers.append(offline_server)
+
+            # eu_offline = eu_soup.find_all(text='(Offline)')
+            # for item in eu_offline:
+            #     offline_server = item.parent.parent.contents[0].replace('\n','')
+            #     if offline_server:
+            #         eu_servers.append(offline_server)
+
+            # if len(us_servers) > 0:
+            #     bot.irc.sendMSG("US Servers Offline: " + prettyListString(us_servers, " & ", cc = color.irc_red), msg_data["target"])
+            # if len(eu_servers) > 0:
+            #     bot.irc.sendMSG("EU Servers Offline: " + prettyListString(eu_servers, " & ", cc = color.irc_red), msg_data["target"])
 
 
     def getMinecraftStatus(self, bot, msg_data, show_legacy, show_extended):
