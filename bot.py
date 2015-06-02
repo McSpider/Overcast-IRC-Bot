@@ -228,7 +228,7 @@ try:
         try:
             status = _bot.main()
             if status == 1:
-                log.error(color.b_red + "Overcast IRC Bot - Unintentionally disconnected, reconnecting. %s\n" % (self.disconnected_errno,) + color.clear)
+                log.error(color.b_red + "Overcast IRC Bot - Unintentionally disconnected, reconnecting. %s\n" % (_bot.disconnected_errno,) + color.clear)
         except Exception, e:
             trace = traceback.format_exc()
             log.error(color.red + trace + color.clear)
